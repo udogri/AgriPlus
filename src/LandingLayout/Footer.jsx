@@ -40,9 +40,10 @@ import {
                 <Text>ApgriPlus</Text>
             </Flex>
             <Text fontSize={{ base: "14px", md: "15px", lg: "16px" }} color="#737373">
-              At One by One, we believe in the power of individual impact. Our
-              mission is simple: to connect promising students from underserved
-              communities with sponsors and mentors who can change their lives.
+            At AgriPlus, we believe in the power of collaboration to transform agriculture.
+             Our mission is simple: to connect farmers, vets, logistics providers, and buyers
+              in a unified platform that drives growth, improves livelihoods, and builds a more
+               resilient food system.
             </Text>
           </GridItem>
   
@@ -51,20 +52,20 @@ import {
           <GridItem alignItems={{ base: "flex-start", md: "flex-end" }} display="flex" flexDirection="column" >
             <Heading fontSize="16px" mb={3}>Navigation</Heading>
             <Stack spacing={2}>
-              <Link href="#" fontSize={{ base: "12px", md: "13px", lg: "15px" }} fontWeight="500" color="#737373">Home</Link>
-              <Link href="#" fontSize={{ base: "12px", md: "13px", lg: "15px" }} fontWeight="500" color="#737373">About Us</Link>
-              <Link href="#" fontSize={{ base: "12px", md: "13px", lg: "15px" }} fontWeight="500" color="#737373">Get Involved</Link>
-              <Link href="#" fontSize={{ base: "12px", md: "13px", lg: "15px" }} fontWeight="500" color="#737373">Contact Us</Link>
+            <Link onClick={() => navigate("/")} fontSize={{ base: "12px", md: "13px", lg: "15px" }} fontWeight="500" color="#737373">Home</Link>
+            <Link onClick={() => navigate("/about-us")} fontSize={{ base: "12px", md: "13px", lg: "15px" }} fontWeight="500" color="#737373">About Us</Link>
+            <Link onClick={() => navigate("/get-involved")} fontSize={{ base: "12px", md: "13px", lg: "15px" }} fontWeight="500" color="#737373">Get Involved</Link>
+            <Link onClick={() => navigate("/contact-us")} fontSize={{ base: "12px", md: "13px", lg: "15px" }} fontWeight="500" color="#737373">Contact Us</Link>
             </Stack>
           </GridItem>
   
           <GridItem alignItems={{ base: "flex-start", md: "flex-end" }} display="flex" flexDirection="column" >
             <Heading fontSize="16px" mb={3}>Make An Impact</Heading>
             <Stack spacing={2}>
-              <Link href="#" fontSize={{ base: "12px", md: "13px", lg: "15px" }} fontWeight="500" color="#737373">Become A Sponsor</Link>
-              <Link href="#" fontSize={{ base: "12px", md: "13px", lg: "15px" }} fontWeight="500" color="#737373">School Admin</Link>
-              <Link href="#" fontSize={{ base: "12px", md: "13px", lg: "15px" }} fontWeight="500" color="#737373">Scholarship Admin</Link>
-              <Link href="#" fontSize={{ base: "12px", md: "13px", lg: "15px" }} fontWeight="500" color="#737373">Fund Admin</Link>
+              <Link href="#" fontSize={{ base: "12px", md: "13px", lg: "15px" }} fontWeight="500" color="#737373">Farmer</Link>
+              <Link href="#" fontSize={{ base: "12px", md: "13px", lg: "15px" }} fontWeight="500" color="#737373">Veterinarian</Link>
+              <Link href="#" fontSize={{ base: "12px", md: "13px", lg: "15px" }} fontWeight="500" color="#737373">Logistics</Link>
+              <Link href="#" fontSize={{ base: "12px", md: "13px", lg: "15px" }} fontWeight="500" color="#737373">Buyer</Link>
             </Stack>
           </GridItem>
   
@@ -89,7 +90,7 @@ import {
     borderBottom="1px solid #172F24"
   >
     <Text fontSize="sm" mb={{ base: 4, md: 0 }} color="#737373">
-      Copyright © 2016 - {new Date().getFullYear()} OnebyOne
+      Copyright © {new Date().getFullYear()} AgriPlus
     </Text>
     <Stack direction="row" spacing={{ base: "5px", md: "20px" }} align="center">
       {[

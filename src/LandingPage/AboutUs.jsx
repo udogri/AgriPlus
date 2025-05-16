@@ -21,8 +21,11 @@ import {
 import { FaArrowRight } from 'react-icons/fa';
 import { FaHandHoldingHeart } from "react-icons/fa6";
 import { LuPenTool } from "react-icons/lu";
+import eggs from "../Assets/eggs.jpg";
+import Tomatoes from "../Assets/Tomatoes.jpg";
+import Yam from "../Assets/Yam.jpeg";
 import { PiHandHeartBold, PiPlant, PiHandCoins } from "react-icons/pi";
-import { RiUserSettingsLine } from "react-icons/ri";
+import { LiaHandshake } from "react-icons/lia";
 import MainLayout from '../LandingLayout'
 
 import { PiShootingStar } from "react-icons/pi";
@@ -43,11 +46,11 @@ export default function AboutUs() {
                     </Text>
                 </Text>
                 <Text fontSize={{ base: "14px", md: "17px" }} color="#71717A">
-                    One by One is built on a simple but powerful idea: every student deserves the chance to succeed, no matter their background.
-                    We connect bright, determined students from underserved communities with scholarships, mentorship, and the resources they need
-                    to thrive. With the support of our dedicated volunteers and generous sponsors, we’ve created a platform that bridges the gap
-                    between potential and opportunity. Through personalized connections, we’re not just funding education—we’re changing lives,
-                    one student at a time."
+                AgriPlus is built on a simple but powerful belief: every stakeholder in agriculture deserves access to opportunity, connection, and growth—regardless of location or resources.
+
+We bring together farmers, veterinarians, logistics providers, and clients on one seamless platform to create a thriving agricultural ecosystem. By providing tools, services, and networks, we help bridge the gap between potential and productivity.
+
+With the support of passionate professionals and forward-thinking partners, we’re not just improving how agriculture works—we’re empowering those who make it possible, one connection at a time.
                 </Text>
 
                 <Box
@@ -57,35 +60,12 @@ export default function AboutUs() {
                     justifyContent="center"
                     gap="25px"
                 >
-                    {/* <Image src={Image0} maxW={{ base: "100%", sm: "45%", md: "22%" }} w="100%" />
-                    <Image src={Image1} maxW={{ base: "100%", sm: "45%", md: "22%" }} w="100%" />
-                    <Image src={Image2} maxW={{ base: "100%", sm: "45%", md: "22%" }} w="100%" />
-                    <Image src={Image3} maxW={{ base: "100%", sm: "45%", md: "22%" }} w="100%" /> */}
+                    <Image src={eggs} borderRadius="20px" maxW={{ base: "100%", sm: "45%", md: "22%" }} w="100%" />
+                    <Image src={Tomatoes} borderRadius="20px" maxW={{ base: "100%", sm: "45%", md: "22%" }} w="100%" />
+                    <Image src={Yam} borderRadius="20px" maxW={{ base: "100%", sm: "45%", md: "22%" }} w="100%" />
+                    <Image src={eggs} borderRadius="20px" maxW={{ base: "100%", sm: "45%", md: "22%" }} w="100%" />
                 </Box>
-            </Box>
 
-            <Box bg="#091C13" align="center" justifyContent="center" py="80px" px="60px">
-                <Box align="center" justifyContent="center" display={{ base: "grid", md: "flex" }}>
-                    <Box >
-                        <Box display={{ base: "grid", md: "flex" }} gap="10px">
-                            <VStack borderRadius="15px" mb={{ base: "20px", md: "none" }} borderLeftWidth="3px" borderLeftStyle="solid" borderLeftColor="#39996B29" p={{ base: "20px", md: "30px" }}  >
-                                <Text fontSize={{ base: "30px", md: "48px" }} fontWeight="600" color="#98ACA3">100+</Text>
-                                <Text fontSize={{ base: "14px", md: "17px" }} fontWeight="400" color="white" >students mentored</Text>
-                            </VStack>
-                            <VStack borderRadius="15px" mb={{ base: "20px", md: "none" }} borderLeftWidth="3px" borderLeftStyle="solid" borderLeftColor="#39996B29" p="30px"  >
-                                <Text fontSize={{ base: "30px", md: "48px" }} fontWeight="600" color="#98ACA3">50+</Text>
-                                <Text fontSize={{ base: "14px", md: "17px" }} fontWeight="400" color="white" >partnered schools</Text>
-                            </VStack>
-                            <VStack borderRadius="15px" mb={{ base: "20px", md: "none" }} borderLeftWidth="3px" borderLeftStyle="solid" borderLeftColor="#39996B29" p="30px"  >
-                                <Text fontSize={{ base: "30px", md: "48px" }} fontWeight="600" color="#98ACA3">160+</Text>
-                                <Text fontSize={{ base: "14px", md: "17px" }} fontWeight="400" color="white" >sponsored students</Text>
-                            </VStack>
-                        </Box>
-                    </Box>
-                </Box>
-            </Box>
-
-            <Box py="105px" px="50px">
                 <Text fontSize={{ base: "30px", md: "50px" }} fontWeight="600" color="black" >
                     Our{" "}
                     <Text as="span" color="#8C9492">
@@ -93,16 +73,19 @@ export default function AboutUs() {
                     </Text>
                 </Text>
                 <Text fontSize={{ base: "14px", md: "17px" }} color="#71717A">
-                    One by One is built on a simple but powerful idea: every student deserves the chance to succeed, no matter their background.
-                    We connect bright, determined students from underserved communities with scholarships, mentorship, and the resources they need to thrive. With the support of our dedicated volunteers and generous sponsors, we’ve created a platform that bridges the gap between potential and opportunity.
-                    Through personalized connections, we’re not just funding education—we’re changing lives, one student at a time."
+                Empowering sustainable agriculture through innovation, collaboration,
+                 and commitment to food security.
                 </Text>
             </Box>
+
+            
+
+            
 
             <Box align="center"  justifyContent="center" bg="#E5FFF3" py={{base:"100px", md: "135px"}} px={{base:"30px", md: "40px", lg: "100px"}} >
 
             <Text  fontSize={{base:"23px", md:"50px"}} fontWeight="700" textAlign="center" mb={{base:"30px", md:"50px"}} >
-              onebyOne’s{" "}
+              AgriPlus’{" "}
               <Text as="span" color="#8C9492">
                 Values
               </Text>
@@ -113,31 +96,33 @@ export default function AboutUs() {
                 <VStack textAlign="center" bg="#B7EED4" borderRadius="30px" justifyContent="center" h="168px"  align="center" >
                 <PiShootingStar fontSize="42px" />
                 </VStack>
-                <Text fontSize={{ base: "18px", md: "20px", lg: "24px" }} fontWeight="600" mt="20px" >Innovation</Text>
+                <Text fontSize={{ base: "18px", md: "20px", lg: "24px" }} fontWeight="600" mt="20px" >Sustainability</Text>
                 <Text fontSize={{ base: "12px", md: "13px", lg: "14px" }} fontWeight="400" mt="20px" letterSpacing="-2%" color="#71717A" >
-                We champion the spirit of innovation. We believe in pushing the boundaries
-                of design, constantly exploring new ideas, and embracing emerging technologies
-                and new ideas
+                We are committed to practices that protect natural resources, reduce environmental impact,
+                 and ensure long-term agricultural viability.
+
                 </Text>
               </Box>
               <Box mx="auto" justifyContents="center" maxW={{ base: "300px", md: "357px" }} alignItems="center"      borderRadius="30px"  >
                 <VStack textAlign="center" bg="#B7EED4" borderRadius="30px" justifyContent="center" h="168px"  align="center" >
                 <LuPenTool fontSize="42px" />
                 </VStack>
-                <Text fontSize={{ base: "18px", md: "20px", lg: "24px" }} fontWeight="600" mt="20px" >Craftsmanship</Text>
+                <Text fontSize={{ base: "18px", md: "20px", lg: "24px" }} fontWeight="600" mt="20px" >Innovation</Text>
                 <Text fontSize={{ base: "12px", md: "13px", lg: "14px" }} fontWeight="400" mt="20px" letterSpacing="-2%" color="#71717A" >
-                At the core of Sparkle lies a commitment to user-centric craftsmanship. We understand that every
-                design has a story, and every user interaction is an opportunity to create a meaningful experience.
+                We drive progress by embracing new technologies, research, and data-driven solutions to meet
+                 the evolving needs of modern agriculture.
+
                 </Text>
               </Box>
               <Box mx="auto" justifyContents="center" maxW={{ base: "300px", md: "357px" }} alignItems="center"  borderRadius="30px"  >
                 <VStack textAlign="center" bg="#B7EED4" borderRadius="30px" justifyContent="center" h="168px"  align="center" >
-                <PiShootingStar fontSize="42px" />
+                <LiaHandshake fontSize="42px" />
                 </VStack>
-                <Text fontSize={{ base: "18px", md: "20px", lg: "24px" }} fontWeight="600" mt="20px" >Craftsmanship</Text>
+                <Text fontSize={{ base: "18px", md: "20px", lg: "24px" }} fontWeight="600" mt="20px" >Collaboration</Text>
                 <Text fontSize={{ base: "12px", md: "13px", lg: "14px" }} fontWeight="400" mt="20px" letterSpacing="-2%" color="#71717A" >
-                At the core of Sparkle lies a commitment to user-centric craftsmanship. We understand that every
-                design has a story, and every user interaction is an opportunity to create a meaningful experience.
+                We believe in the power of partnerships—with farmers, governments,
+                 NGOs, and the private sector—to create meaningful, scalable impact.
+
                 </Text>
               </Box>
             </Grid>
