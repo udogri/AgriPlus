@@ -66,7 +66,7 @@ With the support of passionate professionals and forward-thinking partners, weâ€
                     <Image src={eggs} borderRadius="20px" maxW={{ base: "100%", sm: "45%", md: "22%" }} w="100%" />
                 </Box>
 
-                <Text fontSize={{ base: "30px", md: "50px" }} fontWeight="600" color="black" >
+                <Text fontSize={{ base: "30px", md: "50px" }} mt="20px" fontWeight="600" color="black" >
                     Our{" "}
                     <Text as="span" color="#8C9492">
                         Mission

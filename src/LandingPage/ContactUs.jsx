@@ -14,19 +14,33 @@ import {
     FormControl,
     FormLabel,
     Divider,
+    Toast,
 } from '@chakra-ui/react';
 import { MdEmail } from "react-icons/md";
 import { FaPhone, FaFacebookF, FaInstagram, FaLinkedinIn, FaXTwitter } from "react-icons/fa6";
 import MainLayout from '../LandingLayout/Index';
-import { useState } from 'react'
+// import { useState } from 'react'
+
 
 export default function ContactUs() {
 
-    
+    // const [showToast, setShowToast] = useState(false);
+    // const Toast = ({ title, description, status, duration, isClosable }) => {
+    //     setShowToast(true);
+    //     setTimeout(() => {
+    //         setShowToast(false);
+    //     }, duration);
 
-    const EmailSubmit = () => {
-        
-    } 
+
+    // const EmailSubmit = () => {
+    //     Toast({
+    //         title: "Message Sent", 
+    //         description: "Your message has been sent successfully.",
+    //         status: "success",
+    //         duration: 3000,
+    //         isClosable: true,
+    //     });
+    // } 
     return (
         <MainLayout>
         
@@ -94,7 +108,7 @@ export default function ContactUs() {
                         rightIcon={<span>&rarr;</span>}
                         w="full"
                         _hover={{ bg: "transparent", color: "#39996B", border: "1px solid #39996B" }}
-                        onClick={EmailSubmit}
+                        // onClick={EmailSubmit}
                     >
                         Send Message
                     </Button>
@@ -154,7 +168,7 @@ export default function ContactUs() {
                         </SimpleGrid>
                     
 
-                    <Box>
+                    {/* <Box>
                         <Text fontWeight="600" fontSize={{ base: "15px", md: "23px" }} letterSpacing="-2px" mb="20px">Follow Us:</Text>
                         <HStack spacing={{ base: "20px", md: "30px" }} mb={{ base: "20px", md: "0" }} >
                             <Link href="#"><Icon as={FaFacebookF} color="#39996B" _hover={{transform: "scale(1.3)", transition: "transform 0.2s ease-in-out"}} boxSize={{ base: 4, md: 5 }} /></Link>
@@ -162,7 +176,7 @@ export default function ContactUs() {
                             <Link href="#"><Icon as={FaInstagram} color="#39996B"  _hover={{transform: "scale(1.3)", transition: "transform 0.2s ease-in-out"}} boxSize={{ base: 4, md: 5 }} /></Link>
                             <Link href="#"><Icon as={FaLinkedinIn} color="#39996B"  _hover={{transform: "scale(1.3)", transition: "transform 0.2s ease-in-out"}} boxSize={{ base: 4, md: 5 }} /></Link>
                         </HStack>
-                    </Box>
+                    </Box> */}
                     
                 </VStack>
 
@@ -173,3 +187,4 @@ export default function ContactUs() {
         </MainLayout>
     );
 }
+

@@ -1,7 +1,7 @@
 // src/components/Header.jsx
 import { Box, Flex, HStack, IconButton, Button, useDisclosure, Stack, Link, Image } from '@chakra-ui/react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-// import logo from "../Asset/whiteLogo.svg"
+import Logo from "../assets/logo.png"; // Adjust the path to your logo image
 import { MdClose } from "react-icons/md";
 import { IoMdMenu } from "react-icons/io";
 
@@ -48,7 +48,7 @@ export default function Header() {
       boxShadow="md"
     >
       <Flex h={16} alignItems="center" justifyContent="space-between" zIndex="1000">
-        {/* <Image px="18.5px" py='20px' src={logo} width="150px" onClick={() => navigate("/")} /> */}
+        <Image  src={Logo} width="100px" cursor="pointer" onClick={() => navigate("/")} />
         <Box>
           <HStack gap={{ md: "6px", lg: "32px" }} alignItems="center" display={{ base: 'none', md: 'flex' }}>
             {Links.map((link) => (

@@ -20,7 +20,7 @@ import {
   } from "react-icons/fa";
   import { FaXTwitter } from "react-icons/fa6";
   import { Link as RouterLink, useNavigate } from 'react-router-dom';
-  
+  import Logo from "../assets/logo.png"; // Adjust the path to your logo image
   
   const Footer = () => {
     const navigate = useNavigate();
@@ -37,7 +37,7 @@ import {
           {/* Logo and Mission */}
           <GridItem >
             <Flex align="center" mb={4}>
-                <Text>ApgriPlus</Text>
+        <Image   src={Logo} width="100px" cursor="pointer" onClick={() => navigate("/")} />
             </Flex>
             <Text fontSize={{ base: "14px", md: "15px", lg: "16px" }} color="#737373">
             At AgriPlus, we believe in the power of collaboration to transform agriculture.
@@ -54,7 +54,6 @@ import {
             <Stack spacing={2}>
             <Link onClick={() => navigate("/")} fontSize={{ base: "12px", md: "13px", lg: "15px" }} fontWeight="500" color="#737373">Home</Link>
             <Link onClick={() => navigate("/about-us")} fontSize={{ base: "12px", md: "13px", lg: "15px" }} fontWeight="500" color="#737373">About Us</Link>
-            <Link onClick={() => navigate("/get-involved")} fontSize={{ base: "12px", md: "13px", lg: "15px" }} fontWeight="500" color="#737373">Get Involved</Link>
             <Link onClick={() => navigate("/contact-us")} fontSize={{ base: "12px", md: "13px", lg: "15px" }} fontWeight="500" color="#737373">Contact Us</Link>
             </Stack>
           </GridItem>

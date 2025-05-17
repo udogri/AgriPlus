@@ -112,14 +112,10 @@ export default function Home() {
                         <Text fontSize={{ base: "12px", md: "18px" }}>
                             AgriPlus is your all-in-one agricultural ecosystem — helping farmers thrive, vets deliver expert care, logistics teams move faster, and clients access quality produce with ease.
                         </Text>
-                        <Flex gap="10px" w="100%" maxW={{ base: "100%", md: "358px" }} alignItems="center" display={{ base: 'grid', md: 'flex' }}>
                             <Button w={{ base: '100%', md: "171px" }} bg="white" fontSize="14px" px="28px" py="10px" color="#2E2B24" _hover={{ bg: "transparent", color: "white", border: "1px solid" }} onClick={() => {
-                                router("/sign-in")
+                                navigate("/sign-in")
                             }} >Sign Up Today</Button>
-                            <Button w={{ base: '100%', md: "171px" }} border="1px" bg="transparent" fontSize="14px" px="28px" py="10px" color="#ffff" _hover={{ bg: "white", color: "#2E2B24", border: "none" }} onClick={() => {
-                                router("/sign-in")
-                            }} >Learn More</Button>
-                        </Flex>
+                            
                     </Stack>
 
 
@@ -281,16 +277,7 @@ export default function Home() {
                                     >
                                         <HStack justifyContent="space-between" mb="15px">
                                             {role.icon}
-                                            <Box
-                                                fontSize="28px"
-                                                color="#71717A"
-                                                transition="transform 0.2s ease-in-out"
-                                                _hover={{ transform: "scale(1.5)" }}
-                                                cursor="pointer"
-                                                onClick={() => router("/get-involved")}
-                                            >
-                                                <FaArrowRight />
-                                            </Box>
+                                            
                                         </HStack>
                                         <VStack align="start" spacing={3}>
                                             <Flex justify="space-between" w="full" align="center">
@@ -308,6 +295,9 @@ export default function Home() {
                                                 borderColor="#39996B"
                                                 _hover={{ bg: "#39996B", color: "white", border: "1px solid white" }} fontSize={{ base: "10px", md: "14px" }}
                                                 mt="auto"
+                                                onClick={() => {
+                                            navigate("/sign-up")
+                                        }}
                                             >
                                                 Get Started
                                             </Button>
