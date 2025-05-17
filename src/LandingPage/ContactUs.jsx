@@ -36,13 +36,13 @@ export default function ContactUs() {
                 bg="#E5FFF3"
                 p={10}
                 spacing={10}
-                align="flex-start"
-                justify="flex-start"
+                align="center"
+                justify="center"
                 minH="100vh"
                 flexWrap="wrap"
             >
                 {/* Left Section */}
-                <VStack align="flex-start" flex={1} spacing={6} maxW="529px" w="100%">
+                <VStack align="center" flex={1} spacing={6} maxW="529px" w="100%">
                     <Text fontSize={{ base: "29px", md: "49px", lg: "59px" }} fontWeight="600" color="black" letterSpacing="-2px" lineHeight={{ base: "30px", md: "67px" }}>
                         Get In Touch <Text as="span" color="#8C9492">With Us</Text>
                     </Text>
@@ -52,7 +52,55 @@ export default function ContactUs() {
                         or need support, we’d love to connect.
                     </Text>
 
-                    <Box>
+                    <Box
+                    bg="white"
+                    p={{ base: 4, md: 8 }}
+                    rounded="2xl"
+                    shadow="md"
+                    w="100%"
+                    maxW={{ md: "100%",lg: "612px" }}
+                    mr="auto"  // Pushes right edge inward
+                >
+                    <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4} mb={4}>
+                        <FormControl>
+                            <FormLabel fontSize={{ base: "13px", md: "16px" }}>First Name</FormLabel>
+                            <Input fontSize={{ base: "13px", md: "16px" }} placeholder="First name" />
+                        </FormControl>
+
+                        <FormControl>
+                            <FormLabel fontSize={{ base: "13px", md: "16px" }}>Last Name</FormLabel>
+                            <Input fontSize={{ base: "13px", md: "16px" }} placeholder="Last name" />
+                        </FormControl>
+                    </SimpleGrid>
+
+                    <FormControl mb={4}>
+                        <FormLabel fontSize={{ base: "13px", md: "16px" }}>Email</FormLabel>
+                        <Input fontSize={{ base: "13px", md: "16px" }} placeholder="your@email.com" type="email" />
+                    </FormControl>
+
+                    <FormControl mb={4}>
+                        <FormLabel fontSize={{ base: "13px", md: "16px" }}>Phone</FormLabel>
+                        <Input placeholder="+234 812-123-4567" type="tel" />
+                    </FormControl>
+
+                    <FormControl mb={6}>
+                        <FormLabel fontSize={{ base: "13px", md: "16px" }}>Message</FormLabel>
+                        <Textarea fontSize={{ base: "13px", md: "16px" }} placeholder="Write your message..." rows={4} />
+                    </FormControl>
+
+                    <Button
+                        bg="#39996B"
+                        color="white"
+                        rightIcon={<span>&rarr;</span>}
+                        w="full"
+                        _hover={{ bg: "transparent", color: "#39996B", border: "1px solid #39996B" }}
+                        onClick={EmailSubmit}
+                    >
+                        Send Message
+                    </Button>
+                    
+                </Box>
+                
                         <Text fontSize={{ base: "17px", md: "23px" }} letterSpacing="-2px" fontWeight="600" mb={2}>Want To Reach Out Directly?</Text>
                         <SimpleGrid columns={{ base: 1, sm: 1 }} spacing={4}>
                             <Flex
@@ -104,7 +152,7 @@ export default function ContactUs() {
                                 </Flex>
                             </Flex>
                         </SimpleGrid>
-                    </Box>
+                    
 
                     <Box>
                         <Text fontWeight="600" fontSize={{ base: "15px", md: "23px" }} letterSpacing="-2px" mb="20px">Follow Us:</Text>
@@ -115,56 +163,12 @@ export default function ContactUs() {
                             <Link href="#"><Icon as={FaLinkedinIn} color="#39996B"  _hover={{transform: "scale(1.3)", transition: "transform 0.2s ease-in-out"}} boxSize={{ base: 4, md: 5 }} /></Link>
                         </HStack>
                     </Box>
+                    
                 </VStack>
 
                 {/* Right Section - Contact Form */}
-                <Box
-                    bg="white"
-                    p={{ base: 4, md: 8 }}
-                    rounded="2xl"
-                    shadow="md"
-                    w="100%"
-                    maxW={{ md: "100%",lg: "612px" }}
-                    mr="auto"  // Pushes right edge inward
-                >
-                    <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4} mb={4}>
-                        <FormControl>
-                            <FormLabel fontSize={{ base: "13px", md: "16px" }}>First Name</FormLabel>
-                            <Input fontSize={{ base: "13px", md: "16px" }} placeholder="First name" />
-                        </FormControl>
-
-                        <FormControl>
-                            <FormLabel fontSize={{ base: "13px", md: "16px" }}>Last Name</FormLabel>
-                            <Input fontSize={{ base: "13px", md: "16px" }} placeholder="Last name" />
-                        </FormControl>
-                    </SimpleGrid>
-
-                    <FormControl mb={4}>
-                        <FormLabel fontSize={{ base: "13px", md: "16px" }}>Email</FormLabel>
-                        <Input fontSize={{ base: "13px", md: "16px" }} placeholder="your@email.com" type="email" />
-                    </FormControl>
-
-                    <FormControl mb={4}>
-                        <FormLabel fontSize={{ base: "13px", md: "16px" }}>Phone</FormLabel>
-                        <Input placeholder="+234 812-123-4567" type="tel" />
-                    </FormControl>
-
-                    <FormControl mb={6}>
-                        <FormLabel fontSize={{ base: "13px", md: "16px" }}>Message</FormLabel>
-                        <Textarea fontSize={{ base: "13px", md: "16px" }} placeholder="Write your message..." rows={4} />
-                    </FormControl>
-
-                    <Button
-                        bg="#39996B"
-                        color="white"
-                        rightIcon={<span>&rarr;</span>}
-                        w="full"
-                        _hover={{ bg: "transparent", color: "#39996B", border: "1px solid #39996B" }}
-                        onClick={EmailSubmit}
-                    >
-                        Send Message
-                    </Button>
-                </Box>
+                
+                
             </Stack>
         </MainLayout>
     );
