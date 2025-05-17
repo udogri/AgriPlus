@@ -9,7 +9,6 @@ import { IoMdMenu } from "react-icons/io";
 const Links = [
   { name: 'Home', path: '/' },
   { name: 'About us', path: '/about-us' },
-  { name: 'Get involved', path: '/get-involved' },
   { name: 'Contact us', path: '/contact-us' },
 ];
 

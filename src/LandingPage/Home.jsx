@@ -46,7 +46,7 @@ const Feature = ({ title, text, icon }) => (
 export default function Home() {
 
 
-    const router = useNavigate();
+    const navigate = useNavigate();
 
     const faqItems = [
         {
@@ -239,22 +239,7 @@ export default function Home() {
                                  and clients like you—working together to build a stronger, more sustainable
                                 agriculture community.
                                 </Text>
-                                <Button
-                                    bg="#39996B"
-                                    color="white"
-                                    fontWeight="500"
-                                    fontSize={{ base: "13px", md: "16px" }}
-                                    px="28px"
-                                    py="10px"
-                                    maxW="fit-content"
-                                    rightIcon={<FaArrowRightLong />}
-                                    _hover={{ bg: "transparent", color: "white", border: "1px solid white" }}
-                                    onClick={() => {
-                                        router("/get-involved")
-                                    }}
-                                >
-                                    Learn more about our roles
-                                </Button>
+                                
                             </Stack>
 
                             {/* Role Cards */}
