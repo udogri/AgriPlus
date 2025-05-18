@@ -23,6 +23,7 @@ import { FaHandHoldingHeart } from "react-icons/fa6";
 import { LuPenTool } from "react-icons/lu";
 import eggs from "../Assets/eggs.jpg";
 import Tomatoes from "../Assets/Tomatoes.jpg";
+import onions from "../Assets/onions.webp";
 import Yam from "../Assets/Yam.jpeg";
 import { PiHandHeartBold, PiPlant, PiHandCoins } from "react-icons/pi";
 import { LiaHandshake } from "react-icons/lia";
@@ -63,7 +64,7 @@ With the support of passionate professionals and forward-thinking partners, weâ€
                     <Image src={eggs} borderRadius="20px" maxW={{ base: "100%", sm: "45%", md: "22%" }} w="100%" />
                     <Image src={Tomatoes} borderRadius="20px" maxW={{ base: "100%", sm: "45%", md: "22%" }} w="100%" />
                     <Image src={Yam} borderRadius="20px" maxW={{ base: "100%", sm: "45%", md: "22%" }} w="100%" />
-                    <Image src={eggs} borderRadius="20px" maxW={{ base: "100%", sm: "45%", md: "22%" }} w="100%" />
+                    <Image src={onions} borderRadius="20px" maxW={{ base: "100%", sm: "45%", md: "22%" }} w="100%" />
                 </Box>
 
                 <Text fontSize={{ base: "30px", md: "50px" }} mt="20px" fontWeight="600" color="black" >
