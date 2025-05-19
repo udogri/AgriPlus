@@ -5,6 +5,7 @@ import Home from './LandingPage/Home';
 import ContactUs from './LandingPage/ContactUs';
 import AboutUs from './LandingPage/AboutUs';
 import ScrollToTop from './Components/ScrollToTop';
+import FarmerDashboard from './Admins/Farmer/Index';
 
 function App() {
   return (
@@ -15,6 +16,10 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/contact-us" element={<ContactUs />} />
           <Route path="/about-us" element={<AboutUs />} />
+
+          {/* Add more routes as needed */}
+          <Route path="/farmer/dashboard" element={<FarmerDashboard />} />
+
           
         </Routes>
       </Box>
