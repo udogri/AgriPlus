@@ -27,7 +27,7 @@ import onions from "../assets/onions.webp";
 import Yam from "../assets/Yam.jpeg";
 import { PiHandHeartBold, PiPlant, PiHandCoins } from "react-icons/pi";
 import { LiaHandshake } from "react-icons/lia";
-import MainLayout from '../LandingLayout'
+import MainLayout from '../LandingLayout/Index'
 
 import { PiShootingStar } from "react-icons/pi";
 
