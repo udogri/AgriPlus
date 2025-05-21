@@ -19,7 +19,7 @@ import {
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom'
 import { FaArrowRight } from 'react-icons/fa';
-import FarmingImg from "../Assets/FarmingImg.avif"
+import FarmingImg from "../assets/FarmingImg.avif"
 import vet from "../Assets/vet.jpg"
 import FAQImg from "../Assets/FAQImg.webp"
 import { RiSeedlingLine } from "react-icons/ri";
