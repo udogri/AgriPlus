@@ -1,7 +1,7 @@
 // src/components/Header.jsx
 import { Box, Flex, HStack, IconButton, Button, useDisclosure, Stack, Link, Image } from '@chakra-ui/react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import Logo from "../assets/logo.png"; // Adjust the path to your logo image
+import Logo from "../assets/Logo.png"; // Adjust the path to your logo image
 import { MdClose } from "react-icons/md";
 import { IoMdMenu } from "react-icons/io";
 

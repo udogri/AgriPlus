@@ -20,7 +20,7 @@ import {
   } from "react-icons/fa";
   import { FaXTwitter } from "react-icons/fa6";
   import { Link as RouterLink, useNavigate } from 'react-router-dom';
-  import Logo from "../assets/logo.png"; // Adjust the path to your logo image
+  import Logo from "../assets/Logo.png"; // Adjust the path to your logo image
   
   const Footer = () => {
     const navigate = useNavigate();
