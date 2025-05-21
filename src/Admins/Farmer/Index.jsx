@@ -18,7 +18,14 @@ import {
   Td,
   Avatar,
   useColorModeValue,
+  Grid,
+  Button,
+  Icon,
+  VStack,
 } from "@chakra-ui/react";
+import { IoIosArrowForward } from "react-icons/io";
+import { PiStudent } from "react-icons/pi";
+import { TbCurrencyNaira } from "react-icons/tb";
 
 const stats = [
   {
@@ -68,18 +75,51 @@ export default function FarmerDashboard() {
       <Box p={5} bg={useColorModeValue("gray.50", "gray.800")} minH="100vh">
         <Heading mb={6}>Farmer’s Dashboard</Heading>
 
-        {/* Stats */}
-        <SimpleGrid columns={[1, null, 3]} spacing={6} mb={8}>
-          {stats.map((stat, index) => (
-            <StatCard key={index} {...stat} />
-          ))}
-        </SimpleGrid>
+        <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={4} mb="20px">
+          <Stat pt="15px" paddingBottom="15px" pl="23px" pr="23px" bgGradient="linear(to-r, #20553C, #C4EF4B)" borderRadius="md" gap={18}>
+            <StatLabel color="white">Total Income</StatLabel>
+            <StatNumber display="flex" alignItems="center" fontSize="40px" color="white"><TbCurrencyNaira  /> 73400</StatNumber>
+            <Button size="sm" mt={2} w="170px" p="10px 24px" h="40px" fontSize="14px" textColor="#39996B"  >Transaction history <Icon as={IoIosArrowForward} boxSize={5} ml={2} /></Button>
+          </Stat>
+
+          <VStack spacing={2} align="stretch" w="full" border="1px solid #EDEFF2" h="181px" overflow="hidden">
+            <Box p={4} bg="white" borderRadius="md" border="1px solid #EDEFF2" display="grid" h="181px" gap={2}>
+
+              {/* Total Students Funded */}
+              <Stat p={4} bg="white" borderRadius="md" border="1px solid #EDEFF2" h="73px">
+                <Flex direction="row" justify="space-between" align="center">
+                  <StatLabel display="flex" alignItems="center" align="center" color='#4C515C' fontSize="16px">
+                    <PiStudent  />
+                    Total Items sold
+                  </StatLabel>
+                  <StatNumber fontSize="16px">11</StatNumber>
+                </Flex>
+              </Stat>
+
+              {/* Total Disbursements */}
+              <Stat p={4} bg="white" borderRadius="md" border="1px solid #EDEFF2" h="73px">
+                <Flex direction="row" justify="space-between" align="center">
+                  <StatLabel display="flex" alignItems="center" align="center" color='#4C515C' fontSize="19px">
+                    <TbCurrencyNaira  />
+                    Total Clients
+                  </StatLabel>
+                  <StatNumber fontSize="20px">7</StatNumber>
+                </Flex>
+              </Stat>
+
+            </Box>
+          </VStack>
+        </Grid>
+        
 
         {/* Inventory */}
         <Box mb={8}>
+        <Flex justifyContent="space-between">
           <Heading size="md" mb={4}>
             Inventory Overview
           </Heading>
+          <Text>View all</Text>
+          </Flex>
           <SimpleGrid columns={[1, 2, 4]} spacing={4}>
             {inventory.map((item, i) => (
               <Box
@@ -99,9 +139,12 @@ export default function FarmerDashboard() {
 
         {/* Transactions */}
         <Box>
+          
+          <Flex justifyContent="space-between">
           <Heading size="md" mb={4}>
-            Recent Transactions
-          </Heading>
+          Recent Transactions          </Heading>
+          <Text>View all</Text>
+          </Flex>
           <Box overflowX="auto">
             <Table variant="simple" bg="white" borderRadius="md" shadow="sm">
               <Thead bg="gray.100">
