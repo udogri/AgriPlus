@@ -20,7 +20,7 @@ import {
 import { useNavigate } from 'react-router-dom'
 import { FaArrowRight } from 'react-icons/fa';
 import FarmingImg from "../assets/FarmingImg.avif"
-import vet from "../assets/vet.jpg"
+import vet from "../assets/Vet.jpg"
 import { RiSeedlingLine } from "react-icons/ri";
 import { PiCarProfile } from "react-icons/pi";
 import { AiOutlineUser } from "react-icons/ai";
