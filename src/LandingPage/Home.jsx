@@ -20,7 +20,7 @@ import {
 import { useNavigate } from 'react-router-dom'
 import { FaArrowRight } from 'react-icons/fa';
 import FarmingImg from "../assets/FarmingImg.avif"
-import vet from "../assets/Vet.jpg"
+import Vet from "../assets/Vet.jpg"
 import { RiSeedlingLine } from "react-icons/ri";
 import { PiCarProfile } from "react-icons/pi";
 import { AiOutlineUser } from "react-icons/ai";
@@ -171,7 +171,7 @@ export default function Home() {
                             </Stack>
 
                             <Image
-          src={vet}
+          src={Vet}
           alt="About Us"
           w={{ base: "300px", md: "350px", lg: "400px" }}
           h={{ base: "300px", md: "350px", lg: "400px" }}
