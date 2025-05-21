@@ -21,10 +21,10 @@ import {
 import { FaArrowRight } from 'react-icons/fa';
 import { FaHandHoldingHeart } from "react-icons/fa6";
 import { LuPenTool } from "react-icons/lu";
-import eggs from "../Assets/eggs.jpg";
-import Tomatoes from "../Assets/Tomatoes.jpg";
-import onions from "../Assets/onions.webp";
-import Yam from "../Assets/Yam.jpeg";
+import eggs from "../assets/eggs.jpg";
+import Tomatoes from "../assets/Tomatoes.jpg";
+import onions from "../assets/onions.webp";
+import Yam from "../assets/Yam.jpeg";
 import { PiHandHeartBold, PiPlant, PiHandCoins } from "react-icons/pi";
 import { LiaHandshake } from "react-icons/lia";
 import MainLayout from '../LandingLayout'
