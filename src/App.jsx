@@ -6,6 +6,9 @@ import ContactUs from './LandingPage/ContactUs';
 import AboutUs from './LandingPage/AboutUs';
 import ScrollToTop from './Components/ScrollToTop';
 import FarmerDashboard from './Admins/Farmer/Index';
+import FarmerInventory from './Admins/Farmer/FarmerInventory';
+import FarmerTransactions from './Admins/Farmer/FarmerTransactions';
+import SettingsPage from './Admins/Farmer/Settings';
 
 function App() {
   return (
@@ -19,6 +22,9 @@ function App() {
 
           {/* Add more routes as needed */}
           <Route path="/farmer/dashboard" element={<FarmerDashboard />} />
+          <Route path="/farmer/inventory" element={<FarmerInventory />} />
+          <Route path="/farmer/transactions" element={<FarmerTransactions />} />
+          <Route path="/farmer/settings" element={<SettingsPage />} />
 
           
         </Routes>

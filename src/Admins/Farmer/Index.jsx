@@ -26,6 +26,7 @@ import {
 import { IoIosArrowForward } from "react-icons/io";
 import { PiStudent } from "react-icons/pi";
 import { TbCurrencyNaira } from "react-icons/tb";
+import DashBoardLayout from "../../DashboardLayout";
 
 const stats = [
   {
@@ -71,7 +72,7 @@ function StatCard({ label, value, helpText }) {
 
 export default function FarmerDashboard() {
   return (
-    <ChakraProvider>
+    <DashBoardLayout active="Farmer">
       <Box p={5} bg={useColorModeValue("gray.50", "gray.800")} minH="100vh">
         <Heading mb={6}>Farmer’s Dashboard</Heading>
 
@@ -174,7 +175,7 @@ export default function FarmerDashboard() {
           </Box>
         </Box>
       </Box>
-    </ChakraProvider>
+    </DashBoardLayout>
   );
 }
 
