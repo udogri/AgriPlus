@@ -1,4 +1,3 @@
-// src/pages/farmer/InventoryPage.jsx
 import {
     Box,
     Heading,
@@ -13,9 +12,11 @@ import {
     useColorModeValue,
     Text,
   } from '@chakra-ui/react';
+  import { useState } from 'react';
   import DashBoardLayout from '../../DashboardLayout';
-
-  const mockInventory = [
+  import AddInventoryItem from '../../components/AddInventoryItem';
+  
+  const initialInventory = [
     {
       id: 1,
       name: 'Tomatoes',
@@ -44,6 +45,13 @@ import {
   
   export default function FarmerInventory() {
     const bg = useColorModeValue('white', 'gray.800');
+    const [inventory, setInventory] = useState(initialInventory);
+    const [showForm, setShowForm] = useState(false);
+  
+    const handleAddItem = (item) => {
+      setInventory((prev) => [item, ...prev]);
+      setShowForm(false);
+    };
   
     return (
       <DashBoardLayout active="Inventory">
@@ -55,13 +63,19 @@ import {
             mb={4}
           >
             <Heading size="md">My Inventory</Heading>
-            <Button colorScheme="teal">+ Add New Item</Button>
+            <Button colorScheme="teal" onClick={() => setShowForm(!showForm)}>
+              {showForm ? 'Close Form' : '+ Add New Item'}
+            </Button>
           </Stack>
   
-          {mockInventory.length === 0 ? (
-            <Text color="gray.500" mt={4}>No items in inventory.</Text>
+          {showForm && <AddInventoryItem onAdd={handleAddItem} />}
+  
+          {inventory.length === 0 ? (
+            <Text color="gray.500" mt={4}>
+              No items in inventory.
+            </Text>
           ) : (
-            <Box overflowX="auto">
+            <Box overflowX="auto" mt={4}>
               <Table variant="striped" colorScheme="teal">
                 <Thead>
                   <Tr>
@@ -73,15 +87,21 @@ import {
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {mockInventory.map((item) => (
+                  {inventory.map((item) => (
                     <Tr key={item.id}>
                       <Td>{item.name}</Td>
-                      <Td>{item.quantity} {item.unit}</Td>
+                      <Td>
+                        {item.quantity} {item.unit}
+                      </Td>
                       <Td>{item.price}</Td>
                       <Td>{item.updatedAt}</Td>
                       <Td>
-                        <Button size="sm" variant="outline" mr={2}>Edit</Button>
-                        <Button size="sm" colorScheme="red" variant="outline">Delete</Button>
+                        <Button size="sm" variant="outline" mr={2}>
+                          Edit
+                        </Button>
+                        <Button size="sm" colorScheme="red" variant="outline">
+                          Delete
+                        </Button>
                       </Td>
                     </Tr>
                   ))}
