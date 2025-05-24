@@ -11,10 +11,17 @@ import {
     Stack,
     useColorModeValue,
     Text,
+    Modal,
+    ModalOverlay,
+    ModalContent,
+    ModalHeader,
+    ModalCloseButton,
+    ModalBody,
+    useDisclosure,
   } from '@chakra-ui/react';
   import { useState } from 'react';
   import DashBoardLayout from '../../DashboardLayout';
-  import AddInventoryItem from '../../components/AddInventoryItem';
+  import AddInventoryItem from '../../Components/AddInventoryItem';
   
   const initialInventory = [
     {
@@ -46,11 +53,11 @@ import {
   export default function FarmerInventory() {
     const bg = useColorModeValue('white', 'gray.800');
     const [inventory, setInventory] = useState(initialInventory);
-    const [showForm, setShowForm] = useState(false);
+    const { isOpen, onOpen, onClose } = useDisclosure();
   
     const handleAddItem = (item) => {
       setInventory((prev) => [item, ...prev]);
-      setShowForm(false);
+      onClose(); // Close modal after submission
     };
   
     return (
@@ -63,12 +70,21 @@ import {
             mb={4}
           >
             <Heading size="md">My Inventory</Heading>
-            <Button colorScheme="teal" onClick={() => setShowForm(!showForm)}>
-              {showForm ? 'Close Form' : '+ Add New Item'}
+            <Button colorScheme="teal" onClick={onOpen}>
+              + Add New Item
             </Button>
           </Stack>
   
-          {showForm && <AddInventoryItem onAdd={handleAddItem} />}
+          <Modal isOpen={isOpen} onClose={onClose} size="lg" isCentered>
+            <ModalOverlay />
+            <ModalContent>
+              <ModalHeader>Add Inventory Item</ModalHeader>
+              <ModalCloseButton />
+              <ModalBody>
+                <AddInventoryItem onAdd={handleAddItem} />
+              </ModalBody>
+            </ModalContent>
+          </Modal>
   
           {inventory.length === 0 ? (
             <Text color="gray.500" mt={4}>
