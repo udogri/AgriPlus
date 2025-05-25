@@ -2,12 +2,6 @@ import {
     Box,
     Heading,
     Button,
-    Table,
-    Thead,
-    Tbody,
-    Tr,
-    Th,
-    Td,
     Stack,
     useColorModeValue,
     Text,
@@ -18,10 +12,16 @@ import {
     ModalCloseButton,
     ModalBody,
     useDisclosure,
+    Image,
+    SimpleGrid,
   } from '@chakra-ui/react';
   import { useState } from 'react';
   import DashBoardLayout from '../../DashboardLayout';
   import AddInventoryItem from '../../Components/AddInventoryItem';
+  import Yam from '../../assets/Yam.jpeg'; // Adjust the path as necessary
+  import Tomatoes from '../../assets/Tomatoes.jpg'; // Adjust the path as necessary
+  import onions from '../../assets/onions.webp'; // Adjust the path as necessary
+  
   
   const initialInventory = [
     {
@@ -31,6 +31,7 @@ import {
       unit: 'kg',
       price: '₦500',
       updatedAt: '2025-05-20',
+      image: Tomatoes, // Using the imported Tomatoes image
     },
     {
       id: 2,
@@ -39,14 +40,16 @@ import {
       unit: 'tubers',
       price: '₦1000',
       updatedAt: '2025-05-18',
+      image: Yam, // Using the imported Yam image
     },
     {
       id: 3,
-      name: 'Maize',
+      name: 'Onions',
       quantity: 300,
       unit: 'kg',
       price: '₦350',
       updatedAt: '2025-05-19',
+      image: onions,
     },
   ];
   
@@ -57,7 +60,7 @@ import {
   
     const handleAddItem = (item) => {
       setInventory((prev) => [item, ...prev]);
-      onClose(); // Close modal after submission
+      onClose();
     };
   
     return (
@@ -70,7 +73,7 @@ import {
             mb={4}
           >
             <Heading size="md">My Inventory</Heading>
-            <Button colorScheme="teal" onClick={onOpen}>
+            <Button background="#39996B" color="white" onClick={onOpen}>
               + Add New Item
             </Button>
           </Stack>
@@ -91,39 +94,47 @@ import {
               No items in inventory.
             </Text>
           ) : (
-            <Box overflowX="auto" mt={4}>
-              <Table variant="striped" colorScheme="teal">
-                <Thead>
-                  <Tr>
-                    <Th>Name</Th>
-                    <Th>Quantity</Th>
-                    <Th>Price</Th>
-                    <Th>Last Updated</Th>
-                    <Th>Actions</Th>
-                  </Tr>
-                </Thead>
-                <Tbody>
-                  {inventory.map((item) => (
-                    <Tr key={item.id}>
-                      <Td>{item.name}</Td>
-                      <Td>
-                        {item.quantity} {item.unit}
-                      </Td>
-                      <Td>{item.price}</Td>
-                      <Td>{item.updatedAt}</Td>
-                      <Td>
-                        <Button size="sm" variant="outline" mr={2}>
-                          Edit
-                        </Button>
-                        <Button size="sm" colorScheme="red" variant="outline">
-                          Delete
-                        </Button>
-                      </Td>
-                    </Tr>
-                  ))}
-                </Tbody>
-              </Table>
-            </Box>
+            <SimpleGrid columns={{ base: 1, sm: 2, md: 3 }} spacing={6} mt={4}>
+              {inventory.map((item) => (
+                <Box
+                  key={item.id}
+                  borderWidth="1px"
+                  borderRadius="lg"
+                  overflow="hidden"
+                  boxShadow="md"
+                >
+                  <Image
+                    src={item.image}
+                    alt={item.name}
+                    objectFit="cover"
+                    width="100%"
+                    height="150px"
+                  />
+                  <Box p={4}>
+                    <Heading size="sm" mb={2}>
+                      {item.name}
+                    </Heading>
+                    <Text>
+                      <strong>Quantity:</strong> {item.quantity} {item.unit}
+                    </Text>
+                    <Text>
+                      <strong>Price:</strong> {item.price}
+                    </Text>
+                    <Text>
+                      <strong>Updated:</strong> {item.updatedAt}
+                    </Text>
+                    <Stack direction="row" mt={3}>
+                      <Button size="sm" variant="outline">
+                        Edit
+                      </Button>
+                      <Button size="sm" colorScheme="red" variant="outline">
+                        Delete
+                      </Button>
+                    </Stack>
+                  </Box>
+                </Box>
+              ))}
+            </SimpleGrid>
           )}
         </Box>
       </DashBoardLayout>

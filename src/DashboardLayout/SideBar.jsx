@@ -51,7 +51,7 @@ import {
             <Button
               key={link.path}
               onClick={() => navigate(link.path)}
-              colorScheme={active === link.label ? 'teal' : 'gray'}
+              color={active === link.label ? '#39996B' : 'black'}
               variant={active === link.label ? 'solid' : 'ghost'}
               justifyContent="flex-start"
             >

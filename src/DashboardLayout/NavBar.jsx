@@ -1,59 +1,89 @@
-// src/components/layout/NavBar.jsx
 import {
     Box,
     Flex,
-    Heading,
     IconButton,
     Img,
     Input,
-    Spacer,
+    Menu,
+    MenuButton,
+    MenuList,
+    MenuItem,
+    useToast,
   } from '@chakra-ui/react';
   import { HamburgerIcon } from '@chakra-ui/icons';
-  import Logo from '../assets/Logo.png'; // Adjust the path to your logo image
+  import { MdLogout } from 'react-icons/md';
+  import Logo from '../assets/Logo.png';
+  import { useNavigate } from 'react-router-dom';
   
   export default function NavBar({ showSearch = true, onOpen, btnRef }) {
+    const toast = useToast();
+    const navigate = useNavigate();
+  
+    const handleLogout = () => {
+      toast({
+        title: 'Logged out.',
+        description: 'You have successfully logged out.',
+        status: 'info',
+        duration: 3000,
+        isClosable: true,
+        position: 'top',
+      });
+      navigate('/');
+    };
+  
     return (
       <Flex
         align="center"
         px={4}
         py={3}
+        justify="space-between"
         borderBottom="1px solid #E2E8F0"
         bg="white"
         shadow="sm"
       >
-        {/* Hamburger icon for mobile */}
-        <Box display={["block", null, null, "none"]}>
-          <IconButton
-            icon={<HamburgerIcon />}
-            variant="outline"
-            aria-label="Open menu"
-            onClick={onOpen}
-            ref={btnRef}
-            mr={4}
+        {/* Left: Hamburger + Logo */}
+        <Flex align="center" flex="1">
+          <Box display={["block", null, null, "none"]}>
+            <IconButton
+              icon={<HamburgerIcon />}
+              variant="outline"
+              aria-label="Open menu"
+              onClick={onOpen}
+              ref={btnRef}
+              mr={4}
+            />
+          </Box>
+  
+          <Img
+            src={Logo}
+            alt="Logo"
+            width={{ base: "50px", md: "80px" }}
+            height="30px"
+            objectFit="contain"
           />
-        </Box>
+        </Flex>
   
-        <Img
-  src={Logo}
-  alt="Logo"
-  width="auto"
-  height="30px"  // or whatever height fits your layout
-  mr={4}
-  objectFit="contain"
-/>
-
-  
+        {/* Center: Search */}
         {showSearch && (
-          <Input
-            placeholder="Search..."
-            maxW="300px"
-            size="sm"
-            bg="gray.100"
-          />
+          <Flex justify="center" flex="1">
+            <Input
+              placeholder="Search..."
+              maxW="300px"
+              size="sm"
+              bg="gray.100"
+            />
+          </Flex>
         )}
   
-        <Spacer />
-        {/* Add right-aligned content like avatar or notification here */}
+        {/* Right: Logout */}
+        <Flex justify="flex-end" flex="1">
+          <Menu>
+            <MenuButton as={IconButton} icon={<MdLogout />} variant="ghost" fontSize="24px" color="green.500" />
+            <MenuList>
+              <MenuItem onClick={handleLogout}>Confirm Logout</MenuItem>
+            </MenuList>
+          </Menu>
+        </Flex>
       </Flex>
     );
   }

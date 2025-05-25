@@ -35,7 +35,7 @@ import DashBoardLayout from '../../DashboardLayout';
               <Input type="password" placeholder="********" />
             </FormControl>
   
-            <Button colorScheme="teal" w="fit-content">Update Profile</Button>
+            <Button background="#39996B" color="white" w="fit-content">Update Profile</Button>
           </VStack>
         </Box>
       </DashBoardLayout>
