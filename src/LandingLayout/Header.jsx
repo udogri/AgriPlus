@@ -100,11 +100,11 @@ export default function Header() {
           </Stack>
           <Box gap="10px" alignItems="center">
             <Button w="100%" mb="10px" border="1px" bg="transparent" color="#39996B" onClick={() => {
-              navigate("/sign-in")
-            }} _hover={{ bg: "#39996B", color: "white", border: "1px solid white" }}>Login</Button>
+                                navigate("/login")
+                              }} _hover={{ bg: "#39996B", color: "white", border: "1px solid white" }}>Login</Button>
             <Button w="100%" border="1px" bg="#39996B" color="#ffff" onClick={() => {
-              navigate("/sign-up")
-            }} _hover={{ bg: "transparent", color: "#39996B", border: "1px solid #39996B" }} >Sign in</Button>
+                                navigate("/login")
+                              }} _hover={{ bg: "transparent", color: "#39996B", border: "1px solid #39996B" }} >Sign in</Button>
           </Box>
         </Box>
       )}

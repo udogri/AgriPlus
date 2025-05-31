@@ -112,7 +112,7 @@ export default function Home() {
                             AgriPlus is your all-in-one agricultural ecosystem — helping farmers thrive, vets deliver expert care, logistics teams move faster, and clients access quality produce with ease.
                         </Text>
                             <Button w={{ base: '100%', md: "171px" }} bg="white" fontSize="14px" px="28px" py="10px" color="#2E2B24" _hover={{ bg: "transparent", color: "white", border: "1px solid" }} onClick={() => {
-                                navigate("/farmer/dashboard")
+                                navigate("/login")
                             }} >Sign Up Today</Button>
                             
                     </Stack>

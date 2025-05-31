@@ -9,7 +9,7 @@ import FarmerDashboard from './Admins/Farmer/Index';
 import FarmerInventory from './Admins/Farmer/FarmerInventory';
 import FarmerTransactions from './Admins/Farmer/FarmerTransactions';
 import SettingsPage from './Admins/Farmer/Settings';
-import LoginSignup from './LoginSignup';
+import LoginSignup from './Auth/LoginSignup';
 
 function App() {
   return (

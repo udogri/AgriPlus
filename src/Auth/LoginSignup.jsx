@@ -17,7 +17,7 @@ import {
 GoogleAuthProvider
 } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
-import { auth } from './firebaseConfig';
+import { auth } from '../firebaseConfig'; // Adjust the import path as necessary
 import { FcGoogle } from 'react-icons/fc';
 
 
@@ -25,7 +25,7 @@ const LoginSignup = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isSignup, setIsSignup] = useState(true);
+  const [isSignup, setIsSignup] = useState(false); // now defaults to login
   const toast = useToast();
   const navigate = useNavigate(); // <-- redirect hook
   const provider = new GoogleAuthProvider(); // you can move this to firebaseConfig if preferred
