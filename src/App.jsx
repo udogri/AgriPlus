@@ -10,6 +10,7 @@ import FarmerInventory from './Admins/Farmer/FarmerInventory';
 import FarmerTransactions from './Admins/Farmer/FarmerTransactions';
 import SettingsPage from './Admins/Farmer/Settings';
 import LoginSignup from './Auth/LoginSignup';
+import ChooseAdmin from './Auth/ChooseAdmin';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           <Route path="/contact-us" element={<ContactUs />} />
           <Route path="/about-us" element={<AboutUs />} />
           <Route path="/login" element={<LoginSignup />} />
+          <Route path="/choose-admin" element={<ChooseAdmin />} />
 
           {/* Add more routes as needed */}
           <Route path="/farmer/dashboard" element={<FarmerDashboard />} />
