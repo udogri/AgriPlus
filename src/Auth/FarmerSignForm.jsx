@@ -1,20 +1,9 @@
 import React, { useState } from 'react';
-import {
-  Box, Button, Input, FormControl, FormLabel, Heading, VStack, useToast, Image, Progress, Select, Text
-} from '@chakra-ui/react';
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
-import { getFirestore, doc, setDoc } from 'firebase/firestore';
-import { app } from '../firebaseConfig';
+import { Box, VStack, Text, Input, FormControl, FormLabel, Button, Select, Textarea, Icon, InputGroup } from '@chakra-ui/react';
+import { FaArrowLeft } from 'react-icons/fa';
 
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-const FarmerSignupForm = () => {
-  const toast = useToast();
-  const [step, setStep] = useState(1);
-  const [loading, setLoading] = useState(false);
-
-  const [formData, setFormData] = useState({
+export default function FarmerSignup() {
+  const [payload, setPayload] = useState({
     fullName: '',
     dob: '',
     gender: '',
@@ -22,13 +11,13 @@ const FarmerSignupForm = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    profilePhotoUrl: '',
+    profilePhoto: '',
     country: '',
     state: '',
     lga: '',
     homeAddress: '',
     farmAddress: '',
-    idDocumentUrl: '',
+    idDocument: '',
     bankName: '',
     accountNumber: '',
     accountName: '',
@@ -36,156 +25,123 @@ const FarmerSignupForm = () => {
   });
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleImageUpload = async (e, field) => {
-    const file = e.target.files[0];
-    const body = new FormData();
-    body.set('key', 'YOUR_IMGBB_API_KEY');
-    body.append('image', file);
-
-    try {
-      const res = await fetch('https://api.imgbb.com/1/upload', {
-        method: 'POST',
-        body,
-      });
-      const data = await res.json();
-      setFormData(prev => ({ ...prev, [field]: data.data.url }));
-    } catch (error) {
-      toast({ title: 'Image upload failed', status: 'error', duration: 3000 });
-    }
-  };
-
-  const handleSubmit = async () => {
-    setLoading(true);
-    try {
-      if (formData.password !== formData.confirmPassword) {
-        toast({ title: 'Passwords do not match', status: 'error', duration: 3000 });
-        setLoading(false);
-        return;
-      }
-
-      const userCred = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-      await setDoc(doc(db, 'farmers', userCred.user.uid), {
-        ...formData,
-        createdAt: new Date().toISOString(),
-      });
-      toast({ title: 'Signup successful', status: 'success', duration: 3000 });
-    } catch (error) {
-      toast({ title: error.message, status: 'error', duration: 3000 });
-    }
-    setLoading(false);
+    const { id, value, files } = e.target;
+    setPayload({ ...payload, [id]: files ? files[0] : value });
   };
 
   return (
-    <Box maxW="lg" mx="auto" mt={10} p={6} boxShadow="2xl" borderRadius="xl" bg="white">
-      <Heading mb={6} size="lg" textAlign="center">👤 Farmer Signup</Heading>
-      <Progress value={(step / 3) * 100} mb={6} />
+      <Box px={['3%', '15%']} mt="74px">
+        <VStack spacing="50px" align="start">
+          <VStack align="start" spacing="22px">
+            <Icon as={FaArrowLeft} boxSize={5} />
+            <Text fontWeight="700" fontSize="24px" color="#101011" mt="4">
+              Complete Your Farmer Profile
+            </Text>
+            <Text fontSize="sm" color="#6B7280" lineHeight="24px">
+              Let’s get to know you and verify your details as a registered farmer.
+            </Text>
+          </VStack>
 
-      {step === 1 && (
-        <VStack spacing={4} align="stretch">
-          <Text fontWeight="bold">Personal Information</Text>
+          {/* Personal Info */}
           <FormControl isRequired>
             <FormLabel>Full Name</FormLabel>
-            <Input name="fullName" value={formData.fullName} onChange={handleChange} />
+            <Input id="fullName" placeholder="Enter your full name" onChange={handleChange} />
           </FormControl>
+
           <FormControl isRequired>
             <FormLabel>Date of Birth</FormLabel>
-            <Input type="date" name="dob" value={formData.dob} onChange={handleChange} />
+            <Input id="dob" type="date" onChange={handleChange} />
           </FormControl>
+
           <FormControl isRequired>
             <FormLabel>Gender</FormLabel>
-            <Select name="gender" value={formData.gender} onChange={handleChange}>
-              <option value="">Select Gender</option>
+            <Select id="gender" placeholder="Select gender" onChange={handleChange}>
               <option value="Male">Male</option>
               <option value="Female">Female</option>
-              <option value="Other">Other</option>
             </Select>
           </FormControl>
+
           <FormControl isRequired>
             <FormLabel>Phone Number</FormLabel>
-            <Input name="phone" value={formData.phone} onChange={handleChange} />
+            <Input id="phone" placeholder="+234" onChange={handleChange} />
           </FormControl>
+
           <FormControl isRequired>
             <FormLabel>Email Address</FormLabel>
-            <Input type="email" name="email" value={formData.email} onChange={handleChange} />
+            <Input id="email" type="email" placeholder="Enter your email" onChange={handleChange} />
           </FormControl>
+
           <FormControl isRequired>
             <FormLabel>Password</FormLabel>
-            <Input type="password" name="password" value={formData.password} onChange={handleChange} />
+            <Input id="password" type="password" placeholder="Enter password" onChange={handleChange} />
           </FormControl>
+
           <FormControl isRequired>
             <FormLabel>Confirm Password</FormLabel>
-            <Input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} />
+            <Input id="confirmPassword" type="password" placeholder="Confirm password" onChange={handleChange} />
           </FormControl>
-          <FormControl>
-            <FormLabel>Upload Profile Photo (Optional)</FormLabel>
-            <Input type="file" onChange={(e) => handleImageUpload(e, 'profilePhotoUrl')} />
-            {formData.profilePhotoUrl && <Image src={formData.profilePhotoUrl} boxSize="100px" borderRadius="full" />}
-          </FormControl>
-          <Button onClick={() => setStep(2)} colorScheme="teal">Next</Button>
-        </VStack>
-      )}
 
-      {step === 2 && (
-        <VStack spacing={4} align="stretch">
-          <Text fontWeight="bold">📍 Location Details</Text>
+          <FormControl>
+            <FormLabel>Upload Profile Photo (optional)</FormLabel>
+            <Input id="profilePhoto" type="file" onChange={handleChange} />
+          </FormControl>
+
+          {/* Location Info */}
           <FormControl isRequired>
             <FormLabel>Country</FormLabel>
-            <Input name="country" value={formData.country} onChange={handleChange} />
+            <Input id="country" placeholder="Enter your country" onChange={handleChange} />
           </FormControl>
+
           <FormControl isRequired>
-            <FormLabel>State/Province</FormLabel>
-            <Input name="state" value={formData.state} onChange={handleChange} />
+            <FormLabel>State / Province</FormLabel>
+            <Input id="state" placeholder="Enter your state" onChange={handleChange} />
           </FormControl>
+
           <FormControl isRequired>
-            <FormLabel>LGA or District</FormLabel>
-            <Input name="lga" value={formData.lga} onChange={handleChange} />
+            <FormLabel>Local Government Area (LGA) or District</FormLabel>
+            <Input id="lga" placeholder="Enter your LGA or District" onChange={handleChange} />
           </FormControl>
+
           <FormControl isRequired>
             <FormLabel>Home Address</FormLabel>
-            <Input name="homeAddress" value={formData.homeAddress} onChange={handleChange} />
+            <Textarea id="homeAddress" placeholder="Enter your home address" onChange={handleChange} />
           </FormControl>
+
           <FormControl>
             <FormLabel>Farm Address (if different)</FormLabel>
-            <Input name="farmAddress" value={formData.farmAddress} onChange={handleChange} />
+            <Textarea id="farmAddress" placeholder="Enter your farm address" onChange={handleChange} />
           </FormControl>
+
           <FormControl isRequired>
             <FormLabel>Upload Government-issued ID</FormLabel>
-            <Input type="file" onChange={(e) => handleImageUpload(e, 'idDocumentUrl')} />
-            {formData.idDocumentUrl && <Image src={formData.idDocumentUrl} boxSize="100px" />}
+            <Input id="idDocument" type="file" onChange={handleChange} />
           </FormControl>
-          <Button onClick={() => setStep(3)} colorScheme="teal">Next</Button>
-          <Button variant="ghost" onClick={() => setStep(1)}>Back</Button>
-        </VStack>
-      )}
 
-      {step === 3 && (
-        <VStack spacing={4} align="stretch">
-          <Text fontWeight="bold">💳 Bank/Payment Details (Optional)</Text>
+          {/* Bank Info (optional) */}
           <FormControl>
             <FormLabel>Bank Name</FormLabel>
-            <Input name="bankName" value={formData.bankName} onChange={handleChange} />
+            <Input id="bankName" placeholder="Enter your bank name" onChange={handleChange} />
           </FormControl>
+
           <FormControl>
             <FormLabel>Account Number</FormLabel>
-            <Input name="accountNumber" value={formData.accountNumber} onChange={handleChange} />
+            <Input id="accountNumber" placeholder="Enter your account number" onChange={handleChange} />
           </FormControl>
+
           <FormControl>
             <FormLabel>Account Name</FormLabel>
-            <Input name="accountName" value={formData.accountName} onChange={handleChange} />
+            <Input id="accountName" placeholder="Enter your account name" onChange={handleChange} />
           </FormControl>
+
           <FormControl>
             <FormLabel>BVN (if required)</FormLabel>
-            <Input name="bvn" value={formData.bvn} onChange={handleChange} />
+            <Input id="bvn" placeholder="Enter your BVN" onChange={handleChange} />
           </FormControl>
-          <Button colorScheme="teal" isLoading={loading} onClick={handleSubmit}>Submit</Button>
-          <Button variant="ghost" onClick={() => setStep(2)}>Back</Button>
-        </VStack>
-      )}
-    </Box>
-  );
-};
 
-export default FarmerSignupForm;
+          <Button colorScheme="teal" width="100%" size="lg">
+            Complete Profile Setup
+          </Button>
+        </VStack>
+      </Box>
+  );
+}
