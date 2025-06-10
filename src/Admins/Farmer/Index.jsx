@@ -63,10 +63,10 @@ export default function FarmerDashboard() {
     fetchInventory();
   }, [uid]);
 
-  const handleDeleteClick = (id) => {
-    setDeleteId(id);
-    onOpen();
-  };
+  // const handleDeleteClick = (id) => {
+  //   setDeleteId(id);
+  //   onOpen();
+  // };
 
   const handleDeleteConfirm = async () => {
     if (!deleteId) return;
