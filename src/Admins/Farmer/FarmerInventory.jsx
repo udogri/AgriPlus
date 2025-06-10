@@ -21,7 +21,7 @@ import {
   Icon,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
-import { db } from '../../firebaseConfig'; // Adjust the path as needed
+import { db } from '../../firebaseConfig';
 import {
   collection,
   addDoc,
@@ -37,7 +37,13 @@ import DashBoardLayout from '../../DashboardLayout';
 const FarmerInventory = () => {
   const bg = useColorModeValue('white', 'gray.800');
   const [inventory, setInventory] = useState([]);
-  const [currentItem, setCurrentItem] = useState(null);
+  const [currentItem, setCurrentItem] = useState({
+    name: '',
+    quantity: '',
+    unit: '',
+    price: '',
+    image: '',
+  });
   const [imageFile, setImageFile] = useState(null);
   const [isEdit, setIsEdit] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
@@ -77,7 +83,7 @@ const FarmerInventory = () => {
 
   const handleSubmit = async () => {
     try {
-      let imageUrl = currentItem?.image || '';
+      let imageUrl = currentItem.image || '';
       if (imageFile) {
         imageUrl = await uploadImageToImgBB(imageFile);
       }
@@ -100,7 +106,7 @@ const FarmerInventory = () => {
 
       fetchInventory();
       onFormClose();
-      setCurrentItem(null);
+      setCurrentItem({ name: '', quantity: '', unit: '', price: '', image: '' });
       setImageFile(null);
       setIsEdit(false);
     } catch (error) {
@@ -131,151 +137,158 @@ const FarmerInventory = () => {
 
   return (
     <DashBoardLayout>
-    <Box bg={bg} p={6} borderRadius="md" boxShadow="md">
-      <Stack
-        direction={{ base: 'column', md: 'row' }}
-        justifyContent="space-between"
-        alignItems="center"
-        mb={4}
-      >
-        <Heading size="md">My Inventory</Heading>
-        <Button background="#39996B" color="white" onClick={onFormOpen}>
-          + Add New Item
-        </Button>
-      </Stack>
-
-      <Modal isOpen={isFormOpen} onClose={onFormClose} size="lg" isCentered>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>{isEdit ? 'Edit Item' : 'Add Inventory Item'}</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <Stack spacing={3}>
-              <FormControl>
-                <FormLabel>Name</FormLabel>
-                <Input
-                  value={currentItem?.name || ''}
-                  onChange={e =>
-                    setCurrentItem({ ...currentItem, name: e.target.value })
-                  }
-                />
-              </FormControl>
-
-              <FormControl>
-                <FormLabel>Quantity</FormLabel>
-                <Input
-                  value={currentItem?.quantity || ''}
-                  onChange={e =>
-                    setCurrentItem({ ...currentItem, quantity: e.target.value })
-                  }
-                />
-              </FormControl>
-
-              
-
-              <FormControl>
-                <FormLabel>Price</FormLabel>
-                <Input
-                  value={currentItem?.price || ''}
-                  onChange={e =>
-                    setCurrentItem({ ...currentItem, price: e.target.value })
-                  }
-                />
-              </FormControl>
-
-              <FormControl>
-                <FormLabel>Image</FormLabel>
-                <Input type="file" onChange={e => setImageFile(e.target.files[0])} />
-              </FormControl>
-            </Stack>
-          </ModalBody>
-          <ModalFooter>
-            <Button
-              background="#39996B"
-              color="white"
-              mr={3}
-              onClick={handleSubmit}
-            >
-              {isEdit ? 'Update' : 'Add'}
-            </Button>
-            <Button onClick={onFormClose}>Cancel</Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-
-      {/* Delete Confirmation Modal */}
-      <Modal isOpen={isDeleteOpen} onClose={onDeleteClose} isCentered>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Confirm Delete</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>Are you sure you want to delete this item?</ModalBody>
-          <ModalFooter>
-            <Button colorScheme="red" mr={3} onClick={handleDelete}>
-              Delete
-            </Button>
-            <Button onClick={onDeleteClose}>Cancel</Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-
-      {inventory.length === 0 ? (
-        <Stack mt={10} align="center" spacing={3}>
-          <Icon as={DeleteIcon} w={8} h={8} color="gray.400" />
-          <Text color="gray.500">No items in inventory.</Text>
+      <Box bg={bg} p={6} borderRadius="md" boxShadow="md">
+        <Stack
+          direction={{ base: 'column', md: 'row' }}
+          justifyContent="space-between"
+          alignItems="center"
+          mb={4}
+        >
+          <Heading size="md">My Inventory</Heading>
+          <Button background="#39996B" color="white" onClick={() => {
+            setCurrentItem({ name: '', quantity: '', unit: '', price: '', image: '' });
+            setIsEdit(false);
+            onFormOpen();
+          }}>
+            + Add New Item
+          </Button>
         </Stack>
-      ) : (
-        <SimpleGrid columns={{ base: 1, sm: 2, md: 3 }} spacing={6} mt={4}>
-          {inventory.map(item => (
-            <Box
-              key={item.id}
-              borderWidth="1px"
-              borderRadius="lg"
-              overflow="hidden"
-              boxShadow="md"
-            >
-              <Image
-                src={item.image}
-                alt={item.name}
-                objectFit="cover"
-                width="100%"
-                height="150px"
-              />
-              <Box p={4}>
-                <Heading size="sm" mb={2}>
-                  {item.name}
-                </Heading>
-                <Text>
-                  <strong>Quantity:</strong> {item.quantity} 
-                </Text>
-                <Text>
-                  <strong>Price:</strong> ₦{item.price}
-                </Text>
-                <Text>
-                  <strong>Updated:</strong> {item.updatedAt}
-                </Text>
-                <Stack direction="row" mt={3}>
-                  <Button
-                    size="sm"
-                    onClick={() => openEditForm(item)}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    size="sm"
-                    colorScheme="red"
-                    variant="outline"
-                    onClick={() => confirmDelete(item.id)}
-                  >
-                    Delete
-                  </Button>
-                </Stack>
+
+        {/* Add/Edit Modal */}
+        <Modal isOpen={isFormOpen} onClose={onFormClose} size="lg" isCentered>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>{isEdit ? 'Edit Item' : 'Add Inventory Item'}</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <Stack spacing={3}>
+                <FormControl>
+                  <FormLabel>Name</FormLabel>
+                  <Input
+                    value={currentItem.name}
+                    onChange={e =>
+                      setCurrentItem({ ...currentItem, name: e.target.value })
+                    }
+                    placeholder="e.g. Tomatoes"
+                  />
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>Quantity</FormLabel>
+                  <Input
+                    value={currentItem.quantity}
+                    onChange={e =>
+                      setCurrentItem({ ...currentItem, quantity: e.target.value })
+                    }
+                    placeholder="e.g. 100"
+                  />
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>Unit</FormLabel>
+                  <Input
+                    value={currentItem.unit}
+                    onChange={e =>
+                      setCurrentItem({ ...currentItem, unit: e.target.value })
+                    }
+                    placeholder="e.g. kg, bags"
+                  />
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>Price (₦)</FormLabel>
+                  <Input
+                    value={currentItem.price}
+                    onChange={e =>
+                      setCurrentItem({ ...currentItem, price: e.target.value })
+                    }
+                    placeholder="e.g. 500"
+                  />
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>Image</FormLabel>
+                  <Input type="file" onChange={e => setImageFile(e.target.files[0])} />
+                </FormControl>
+              </Stack>
+            </ModalBody>
+            <ModalFooter>
+              <Button
+                background="#39996B"
+                color="white"
+                mr={3}
+                onClick={handleSubmit}
+              >
+                {isEdit ? 'Update' : 'Add'}
+              </Button>
+              <Button onClick={onFormClose}>Cancel</Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+
+        {/* Delete Modal */}
+        <Modal isOpen={isDeleteOpen} onClose={onDeleteClose} isCentered>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Confirm Delete</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>Are you sure you want to delete this item?</ModalBody>
+            <ModalFooter>
+              <Button colorScheme="red" mr={3} onClick={handleDelete}>
+                Delete
+              </Button>
+              <Button onClick={onDeleteClose}>Cancel</Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+
+        {/* Inventory Display */}
+        {inventory.length === 0 ? (
+          <Stack mt={10} align="center" spacing={3}>
+            <Icon as={DeleteIcon} w={8} h={8} color="gray.400" />
+            <Text color="gray.500">No items in inventory.</Text>
+          </Stack>
+        ) : (
+          <SimpleGrid columns={{ base: 1, sm: 2, md: 3 }} spacing={6} mt={4}>
+            {inventory.map(item => (
+              <Box
+                key={item.id}
+                borderWidth="1px"
+                borderRadius="lg"
+                overflow="hidden"
+                boxShadow="md"
+              >
+                <Image
+                  src={item.image}
+                  alt={item.name}
+                  objectFit="cover"
+                  width="100%"
+                  height="150px"
+                />
+                <Box p={4}>
+                  <Heading size="sm" mb={2}>
+                    {item.name}
+                  </Heading>
+                  <Text><strong>Quantity:</strong> {item.quantity} {item.unit}</Text>
+                  <Text><strong>Price:</strong> ₦{item.price}</Text>
+                  <Text><strong>Updated:</strong> {item.updatedAt}</Text>
+                  <Stack direction="row" mt={3}>
+                    <Button size="sm" onClick={() => openEditForm(item)}>Edit</Button>
+                    <Button
+                      size="sm"
+                      colorScheme="red"
+                      variant="outline"
+                      onClick={() => confirmDelete(item.id)}
+                    >
+                      Delete
+                    </Button>
+                  </Stack>
+                </Box>
               </Box>
-            </Box>
-          ))}
-        </SimpleGrid>
-      )}
-    </Box>
+            ))}
+          </SimpleGrid>
+        )}
+      </Box>
     </DashBoardLayout>
   );
 };

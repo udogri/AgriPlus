@@ -40,10 +40,13 @@ const LoginSignup = () => {
 
         // Optional: Create a user document in Firestore
         await setDoc(doc(db, 'users', user.uid), {
+          uid: user.uid, // ✅ Save unique user ID
           email,
           displayName: username,
           createdAt: new Date().toISOString(),
+          adminId: '', // will be updated after role is chosen
         });
+        
 
         toast({
           title: 'Account created successfully.',
@@ -99,11 +102,14 @@ const LoginSignup = () => {
 
       if (!userSnap.exists()) {
         await setDoc(userRef, {
+          uid: user.uid, // ✅ add this
           email: user.email,
           displayName: user.displayName,
           createdAt: new Date().toISOString(),
+          adminId: '', // will be updated later
         });
       }
+      
 
       const userData = (await getDoc(userRef)).data();
 

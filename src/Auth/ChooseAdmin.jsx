@@ -1,6 +1,8 @@
 import React from 'react';
 import { Box, Button, Grid, GridItem, Text, VStack } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
+import { doc, updateDoc } from 'firebase/firestore';
+import { auth, db } from '../firebaseConfig';
 
 const ChooseAdmin = () => {
   const navigate = useNavigate();
@@ -36,24 +38,39 @@ const ChooseAdmin = () => {
     },
   ];
 
-  const handleCardClick = (adminId) => {
-    switch (adminId) {
-      case 'farmer':
-        navigate('/farmer-signup');
-        break;
-      case 'buyer':
-        navigate('/buyer-signup');
-        break;
-      case 'logistics':
-        navigate('/logistics-signup');
-        break;
-      case 'veterinarian':
-        navigate('/veterinarian-signup');
-        break;
-      default:
-        break;
+  const handleCardClick = async (adminId) => {
+    const user = auth.currentUser;
+    if (user) {
+      try {
+        await updateDoc(doc(db, 'users', user.uid), {
+          adminId,
+        });
+  
+        // Redirect based on role
+        switch (adminId) {
+          case 'farmer':
+            navigate('/farmer-signup');
+            break;
+          case 'buyer':
+            navigate('/buyer/dashboard');
+            break;
+          case 'logistics':
+            navigate('/logistics/dashboard');
+            break;
+          case 'veterinarian':
+            navigate('/veterinarian/dashboard');
+            break;
+          default:
+            navigate('/');
+        }
+      } catch (err) {
+        console.error('Failed to update adminId:', err);
+      }
+    } else {
+      navigate('/'); // fallback in case user is not logged in
     }
   };
+  
 
   return (
     <Box px={['5%', '10%']} py="60px" minH="100vh" bg="#F9F9F9">
