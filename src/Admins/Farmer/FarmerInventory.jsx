@@ -19,6 +19,7 @@ import {
   FormControl,
   FormLabel,
   Icon,
+  Spinner,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { db } from '../../firebaseConfig';
@@ -37,32 +38,23 @@ import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
 import DashBoardLayout from '../../DashboardLayout';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
+// ... imports remain unchanged
+
 const FarmerInventory = () => {
   const bg = useColorModeValue('white', 'gray.800');
   const [inventory, setInventory] = useState([]);
-  const [currentItem, setCurrentItem] = useState({
-    name: '',
-    quantity: '',
-    unit: '',
-    price: '',
-    image: '',
-  });
+  const [currentItem, setCurrentItem] = useState({ name: '', quantity: '', unit: '', price: '', image: '' });
   const [imageFile, setImageFile] = useState(null);
   const [isEdit, setIsEdit] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
-  const {
-    isOpen: isFormOpen,
-    onOpen: onFormOpen,
-    onClose: onFormClose,
-  } = useDisclosure();
-
-  const {
-    isOpen: isDeleteOpen,
-    onOpen: onDeleteOpen,
-    onClose: onDeleteClose,
-  } = useDisclosure();
+  const { isOpen: isFormOpen, onOpen: onFormOpen, onClose: onFormClose } = useDisclosure();
+  const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
 
   useEffect(() => {
     const auth = getAuth();
@@ -72,30 +64,42 @@ const FarmerInventory = () => {
         fetchInventory(currentUser.uid);
       }
     });
-
     return () => unsubscribe();
   }, []);
 
   const fetchInventory = async (uid) => {
-    const q = query(collection(db, 'farmerInventory'), where('uid', '==', uid));
-    const snapshot = await getDocs(q);
-    const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    setInventory(items);
+    try {
+      setLoading(true);
+      const q = query(collection(db, 'farmerInventory'), where('uid', '==', uid));
+      const snapshot = await getDocs(q);
+      const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setInventory(items);
+    } catch (error) {
+      alert('Error fetching inventory: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const uploadImageToImgBB = async file => {
+  const uploadImageToImgBB = async (file) => {
     const apiKey = 'bc6aa3a9cee7036d9b191018c92c893a';
     const formData = new FormData();
     formData.append('image', file);
-    const response = await axios.post(
-      `https://api.imgbb.com/1/upload?key=${apiKey}`,
-      formData
-    );
-    return response.data.data.url;
+    setUploadingImage(true);
+    try {
+      const response = await axios.post(`https://api.imgbb.com/1/upload?key=${apiKey}`, formData);
+      return response.data.data.url;
+    } catch (error) {
+      alert('Error uploading image.');
+      return '';
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const handleSubmit = async () => {
     try {
+      setSubmitLoading(true);
       let imageUrl = currentItem.image || '';
       if (imageFile) {
         imageUrl = await uploadImageToImgBB(imageFile);
@@ -108,7 +112,7 @@ const FarmerInventory = () => {
         price: currentItem.price,
         updatedAt: new Date().toISOString().split('T')[0],
         image: imageUrl,
-        uid: user.uid, // Attach the user's ID
+        uid: user.uid,
       };
 
       if (isEdit) {
@@ -118,13 +122,15 @@ const FarmerInventory = () => {
         await addDoc(collection(db, 'farmerInventory'), data);
       }
 
-      fetchInventory(user.uid);
+      await fetchInventory(user.uid);
       onFormClose();
       setCurrentItem({ name: '', quantity: '', unit: '', price: '', image: '' });
       setImageFile(null);
       setIsEdit(false);
     } catch (error) {
       alert('Error saving item: ' + error.message);
+    } finally {
+      setSubmitLoading(false);
     }
   };
 
@@ -141,27 +147,26 @@ const FarmerInventory = () => {
 
   const handleDelete = async () => {
     try {
+      setDeleteLoading(true);
       await deleteDoc(doc(db, 'farmerInventory', deleteId));
-      fetchInventory(user.uid);
+      await fetchInventory(user.uid);
       onDeleteClose();
     } catch (error) {
       alert('Error deleting item: ' + error.message);
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
   return (
     <DashBoardLayout>
       <Box bg={bg} p={6} borderRadius="md" boxShadow="md">
-        <Stack
-          direction={{ base: 'column', md: 'row' }}
-          justifyContent="space-between"
-          alignItems="center"
-          mb={4}
-        >
+        <Stack direction={{ base: 'column', md: 'row' }} justifyContent="space-between" alignItems="center" mb={4}>
           <Heading size="md">My Inventory</Heading>
           <Button background="#39996B" color="white" onClick={() => {
             setCurrentItem({ name: '', quantity: '', unit: '', price: '', image: '' });
             setIsEdit(false);
+            setImageFile(null);
             onFormOpen();
           }}>
             + Add New Item
@@ -176,53 +181,26 @@ const FarmerInventory = () => {
             <ModalCloseButton />
             <ModalBody>
               <Stack spacing={3}>
-                <FormControl>
-                  <FormLabel>Name</FormLabel>
-                  <Input
-                    value={currentItem.name}
-                    onChange={e =>
-                      setCurrentItem({ ...currentItem, name: e.target.value })
-                    }
-                    placeholder="e.g. Tomatoes"
-                  />
-                </FormControl>
-
-                <FormControl>
-                  <FormLabel>Quantity</FormLabel>
-                  <Input
-                    value={currentItem.quantity}
-                    onChange={e =>
-                      setCurrentItem({ ...currentItem, quantity: e.target.value })
-                    }
-                    placeholder="e.g. 100"
-                  />
-                </FormControl>
-
-                <FormControl>
-                  <FormLabel>Unit</FormLabel>
-                  <Input
-                    value={currentItem.unit}
-                    onChange={e =>
-                      setCurrentItem({ ...currentItem, unit: e.target.value })
-                    }
-                    placeholder="e.g. kg, bags"
-                  />
-                </FormControl>
-
-                <FormControl>
-                  <FormLabel>Price (₦)</FormLabel>
-                  <Input
-                    value={currentItem.price}
-                    onChange={e =>
-                      setCurrentItem({ ...currentItem, price: e.target.value })
-                    }
-                    placeholder="e.g. 500"
-                  />
-                </FormControl>
-
+                {['Name', 'Quantity', 'Unit', 'Price (₦)'].map((label, index) => {
+                  const key = label.toLowerCase().split(' ')[0];
+                  return (
+                    <FormControl key={index}>
+                      <FormLabel>{label}</FormLabel>
+                      <Input
+                        value={currentItem[key]}
+                        onChange={e => setCurrentItem({ ...currentItem, [key]: e.target.value })}
+                        placeholder={`e.g. ${label === 'Price (₦)' ? '500' : label === 'Quantity' ? '100' : label}`}
+                      />
+                    </FormControl>
+                  );
+                })}
                 <FormControl>
                   <FormLabel>Image</FormLabel>
-                  <Input type="file" onChange={e => setImageFile(e.target.files[0])} />
+                  <Input
+                    type="file"
+                    onChange={e => setImageFile(e.target.files[0])}
+                  />
+                  {uploadingImage && <Spinner mt={2} size="sm" />}
                 </FormControl>
               </Stack>
             </ModalBody>
@@ -231,16 +209,17 @@ const FarmerInventory = () => {
                 background="#39996B"
                 color="white"
                 mr={3}
+                isLoading={submitLoading}
                 onClick={handleSubmit}
               >
                 {isEdit ? 'Update' : 'Add'}
               </Button>
-              <Button onClick={onFormClose}>Cancel</Button>
+              <Button onClick={onFormClose} isDisabled={submitLoading}>Cancel</Button>
             </ModalFooter>
           </ModalContent>
         </Modal>
 
-        {/* Delete Modal */}
+        {/* Delete Confirmation Modal */}
         <Modal isOpen={isDeleteOpen} onClose={onDeleteClose} isCentered>
           <ModalOverlay />
           <ModalContent>
@@ -248,16 +227,26 @@ const FarmerInventory = () => {
             <ModalCloseButton />
             <ModalBody>Are you sure you want to delete this item?</ModalBody>
             <ModalFooter>
-              <Button colorScheme="red" mr={3} onClick={handleDelete}>
+              <Button
+                colorScheme="red"
+                mr={3}
+                onClick={handleDelete}
+                isLoading={deleteLoading}
+              >
                 Delete
               </Button>
-              <Button onClick={onDeleteClose}>Cancel</Button>
+              <Button onClick={onDeleteClose} isDisabled={deleteLoading}>Cancel</Button>
             </ModalFooter>
           </ModalContent>
         </Modal>
 
-        {/* Inventory Display */}
-        {inventory.length === 0 ? (
+        {/* Inventory List */}
+        {loading ? (
+          <Stack mt={10} align="center">
+            <Spinner size="xl" />
+            <Text>Loading Inventory...</Text>
+          </Stack>
+        ) : inventory.length === 0 ? (
           <Stack mt={10} align="center" spacing={3}>
             <Icon as={DeleteIcon} w={8} h={8} color="gray.400" />
             <Text color="gray.500">No items in inventory.</Text>
@@ -265,24 +254,10 @@ const FarmerInventory = () => {
         ) : (
           <SimpleGrid columns={{ base: 1, sm: 2, md: 3 }} spacing={6} mt={4}>
             {inventory.map(item => (
-              <Box
-                key={item.id}
-                borderWidth="1px"
-                borderRadius="lg"
-                overflow="hidden"
-                boxShadow="md"
-              >
-                <Image
-                  src={item.image}
-                  alt={item.name}
-                  objectFit="cover"
-                  width="100%"
-                  height="150px"
-                />
+              <Box key={item.id} borderWidth="1px" borderRadius="lg" overflow="hidden" boxShadow="md">
+                <Image src={item.image} alt={item.name} objectFit="cover" width="100%" height="150px" />
                 <Box p={4}>
-                  <Heading size="sm" mb={2}>
-                    {item.name}
-                  </Heading>
+                  <Heading size="sm" mb={2}>{item.name}</Heading>
                   <Text><strong>Quantity:</strong> {item.quantity} {item.unit}</Text>
                   <Text><strong>Price:</strong> ₦{item.price}</Text>
                   <Text><strong>Updated:</strong> {item.updatedAt}</Text>
@@ -293,8 +268,9 @@ const FarmerInventory = () => {
                       colorScheme="red"
                       variant="outline"
                       onClick={() => confirmDelete(item.id)}
+                      isDisabled={deleteLoading}
                     >
-                      Delete
+                      {deleteLoading && deleteId === item.id ? <Spinner size="xs" /> : 'Delete'}
                     </Button>
                   </Stack>
                 </Box>

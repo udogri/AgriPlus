@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import {
   Box, Text, SimpleGrid, Stat, StatLabel, StatNumber, Flex, Heading, Table, Thead, Tbody, Tr, Th, Td,
   Avatar, useColorModeValue, Grid, Button, Icon, VStack, AlertDialog, AlertDialogBody,
-  AlertDialogFooter, AlertDialogHeader, AlertDialogContent, AlertDialogOverlay, useDisclosure
+  AlertDialogFooter, AlertDialogHeader, AlertDialogContent, AlertDialogOverlay, useDisclosure, Spinner
 } from "@chakra-ui/react";
 import { IoIosArrowForward } from "react-icons/io";
 import { TbCurrencyNaira } from "react-icons/tb";
@@ -10,7 +10,6 @@ import DashBoardLayout from "../../DashboardLayout";
 import { MdOutlineShoppingCart } from "react-icons/md";
 import { LuUserRound } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
-
 import { collection, getDocs, query, where, deleteDoc, doc } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 import { getAuth } from "firebase/auth";
@@ -19,6 +18,9 @@ export default function FarmerDashboard() {
   const [displayName, setDisplayName] = useState("Farmer");
   const [inventory, setInventory] = useState([]);
   const [deleteId, setDeleteId] = useState(null);
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
+  const [isLoadingInventory, setIsLoadingInventory] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = useRef();
@@ -30,8 +32,8 @@ export default function FarmerDashboard() {
   useEffect(() => {
     if (!uid) return;
 
-    // Fetch user data
     const fetchUser = async () => {
+      setIsLoadingUser(true);
       try {
         const userQuery = query(collection(db, "users"), where("uid", "==", uid));
         const querySnapshot = await getDocs(userQuery);
@@ -41,11 +43,13 @@ export default function FarmerDashboard() {
         });
       } catch (error) {
         console.error("Error fetching user:", error);
+      } finally {
+        setIsLoadingUser(false);
       }
     };
 
-    // Fetch inventory data
     const fetchInventory = async () => {
+      setIsLoadingInventory(true);
       try {
         const invQuery = query(collection(db, "farmerInventory"), where("uid", "==", uid));
         const querySnapshot = await getDocs(invQuery);
@@ -56,6 +60,8 @@ export default function FarmerDashboard() {
         setInventory(inv);
       } catch (error) {
         console.error("Error fetching inventory:", error);
+      } finally {
+        setIsLoadingInventory(false);
       }
     };
 
@@ -63,13 +69,9 @@ export default function FarmerDashboard() {
     fetchInventory();
   }, [uid]);
 
-  // const handleDeleteClick = (id) => {
-  //   setDeleteId(id);
-  //   onOpen();
-  // };
-
   const handleDeleteConfirm = async () => {
     if (!deleteId) return;
+    setIsDeleting(true);
     try {
       await deleteDoc(doc(db, "farmerInventory", deleteId));
       setInventory((prev) => prev.filter((item) => item.id !== deleteId));
@@ -77,6 +79,8 @@ export default function FarmerDashboard() {
       setDeleteId(null);
     } catch (error) {
       console.error("Error deleting item:", error);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -84,7 +88,7 @@ export default function FarmerDashboard() {
     <DashBoardLayout active="Farmer">
       <Box p={5} bg={useColorModeValue("gray.50", "gray.800")} minH="100vh">
         <Heading mb={6} color="black">
-          Welcome back, {displayName}
+          {isLoadingUser ? <Spinner size="sm" /> : `Welcome back, ${displayName}`}
         </Heading>
 
         <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={4} mb="20px">
@@ -130,30 +134,41 @@ export default function FarmerDashboard() {
           </VStack>
         </Grid>
 
-        {/* Inventory */}
+        {/* Inventory Section */}
         <Box mb={8}>
           <Flex justifyContent="space-between">
             <Heading size="md" mb={4}>Inventory Overview</Heading>
             <Text onClick={() => navigate("/farmer/inventory")} cursor="pointer">View all</Text>
           </Flex>
-          <SimpleGrid columns={[1, 2, 4]} spacing={4}>
-            {inventory.map((item) => (
-              <Box
-                key={item.id}
-                p={4}
-                borderWidth="1px"
-                borderRadius="md"
-                shadow="sm"
-                bg="white"
-                position="relative"
-              >
-                <Text fontWeight="bold">{item.name}</Text>
-              </Box>
-            ))}
-          </SimpleGrid>
+
+          {isLoadingInventory ? (
+            <Flex justify="center" py={10}>
+              <Spinner size="lg" thickness="4px" speed="0.65s" color="green.500" />
+            </Flex>
+          ) : (
+            <SimpleGrid columns={[1, 2, 4]} spacing={4}>
+              {inventory.length === 0 ? (
+                <Text>No items in inventory.</Text>
+              ) : (
+                inventory.map((item) => (
+                  <Box
+                    key={item.id}
+                    p={4}
+                    borderWidth="1px"
+                    borderRadius="md"
+                    shadow="sm"
+                    bg="white"
+                    position="relative"
+                  >
+                    <Text fontWeight="bold">{item.name}</Text>
+                  </Box>
+                ))
+              )}
+            </SimpleGrid>
+          )}
         </Box>
 
-        {/* Transactions */}
+        {/* Transactions Table */}
         <Box>
           <Flex justifyContent="space-between">
             <Heading size="md" mb={4}>Recent Transactions</Heading>
@@ -205,7 +220,9 @@ export default function FarmerDashboard() {
               </AlertDialogBody>
               <AlertDialogFooter>
                 <Button ref={cancelRef} onClick={onClose}>Cancel</Button>
-                <Button colorScheme="red" onClick={handleDeleteConfirm} ml={3}>Delete</Button>
+                <Button colorScheme="red" onClick={handleDeleteConfirm} isLoading={isDeleting} ml={3}>
+                  Delete
+                </Button>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialogOverlay>
