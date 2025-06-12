@@ -29,10 +29,13 @@ import {
   deleteDoc,
   doc,
   updateDoc,
+  query,
+  where,
 } from 'firebase/firestore';
 import axios from 'axios';
 import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
 import DashBoardLayout from '../../DashboardLayout';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 const FarmerInventory = () => {
   const bg = useColorModeValue('white', 'gray.800');
@@ -47,6 +50,7 @@ const FarmerInventory = () => {
   const [imageFile, setImageFile] = useState(null);
   const [isEdit, setIsEdit] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
+  const [user, setUser] = useState(null);
 
   const {
     isOpen: isFormOpen,
@@ -60,15 +64,24 @@ const FarmerInventory = () => {
     onClose: onDeleteClose,
   } = useDisclosure();
 
-  const fetchInventory = async () => {
-    const snapshot = await getDocs(collection(db, 'farmerInventory'));
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, currentUser => {
+      if (currentUser) {
+        setUser(currentUser);
+        fetchInventory(currentUser.uid);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const fetchInventory = async (uid) => {
+    const q = query(collection(db, 'farmerInventory'), where('uid', '==', uid));
+    const snapshot = await getDocs(q);
     const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     setInventory(items);
   };
-
-  useEffect(() => {
-    fetchInventory();
-  }, []);
 
   const uploadImageToImgBB = async file => {
     const apiKey = 'bc6aa3a9cee7036d9b191018c92c893a';
@@ -95,6 +108,7 @@ const FarmerInventory = () => {
         price: currentItem.price,
         updatedAt: new Date().toISOString().split('T')[0],
         image: imageUrl,
+        uid: user.uid, // Attach the user's ID
       };
 
       if (isEdit) {
@@ -104,7 +118,7 @@ const FarmerInventory = () => {
         await addDoc(collection(db, 'farmerInventory'), data);
       }
 
-      fetchInventory();
+      fetchInventory(user.uid);
       onFormClose();
       setCurrentItem({ name: '', quantity: '', unit: '', price: '', image: '' });
       setImageFile(null);
@@ -128,7 +142,7 @@ const FarmerInventory = () => {
   const handleDelete = async () => {
     try {
       await deleteDoc(doc(db, 'farmerInventory', deleteId));
-      fetchInventory();
+      fetchInventory(user.uid);
       onDeleteClose();
     } catch (error) {
       alert('Error deleting item: ' + error.message);
