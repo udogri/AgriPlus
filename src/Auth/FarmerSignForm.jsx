@@ -114,6 +114,7 @@ const FarmerSignup = () => {
         status: 'success',
         duration: 5000,
         isClosable: true,
+        position: 'top',
       });
       navigate('/farmer/dashboard'); // Adjust the path as needed
     } catch (error) {
@@ -124,6 +125,7 @@ const FarmerSignup = () => {
         status: 'error',
         duration: 5000,
         isClosable: true,
+        position: 'top',
       });
     }
   };

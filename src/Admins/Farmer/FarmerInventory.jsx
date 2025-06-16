@@ -20,6 +20,7 @@ import {
   FormLabel,
   Icon,
   Spinner,
+  Flex,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { db } from '../../firebaseConfig';
@@ -37,6 +38,10 @@ import axios from 'axios';
 import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
 import DashBoardLayout from '../../DashboardLayout';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { useToast } from '@chakra-ui/react';
+import { AiOutlineCloudUpload } from 'react-icons/ai';
+import { TiDocument } from 'react-icons/ti';
+
 
 // ... imports remain unchanged
 
@@ -52,6 +57,8 @@ const FarmerInventory = () => {
   const [submitLoading, setSubmitLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const toast = useToast();
+
 
   const { isOpen: isFormOpen, onOpen: onFormOpen, onClose: onFormClose } = useDisclosure();
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
@@ -99,40 +106,101 @@ const FarmerInventory = () => {
 
   const handleSubmit = async () => {
     try {
+      const { name, quantity, unit, price } = currentItem;
+  
+      // Basic field validation
+      if (!name || !quantity || !unit || !price || (!isEdit && !imageFile)) {
+        toast({
+          title: 'Missing Fields',
+          description: 'Please fill in all required fields including an image.',
+          status: 'warning',
+          duration: 3000,
+          isClosable: true,
+          position: 'top',
+        });
+        return;
+      }
+  
       setSubmitLoading(true);
+  
       let imageUrl = currentItem.image || '';
       if (imageFile) {
         imageUrl = await uploadImageToImgBB(imageFile);
       }
-
+  
       const data = {
-        name: currentItem.name,
-        quantity: currentItem.quantity,
-        unit: currentItem.unit,
-        price: currentItem.price,
+        name,
+        quantity,
+        unit,
+        price,
         updatedAt: new Date().toISOString().split('T')[0],
         image: imageUrl,
         uid: user.uid,
       };
-
+  
       if (isEdit) {
         const itemRef = doc(db, 'farmerInventory', currentItem.id);
         await updateDoc(itemRef, data);
       } else {
         await addDoc(collection(db, 'farmerInventory'), data);
       }
-
+  
+      toast({
+        title: isEdit ? 'Item updated successfully.' : 'Item added successfully.',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+        position: 'top',
+      });
+  
       await fetchInventory(user.uid);
       onFormClose();
       setCurrentItem({ name: '', quantity: '', unit: '', price: '', image: '' });
       setImageFile(null);
       setIsEdit(false);
     } catch (error) {
-      alert('Error saving item: ' + error.message);
+      toast({
+        title: 'Error saving item.',
+        description: error.message,
+        status: 'error',
+        duration: 4000,
+        isClosable: true,
+        position: 'top',
+      });
     } finally {
       setSubmitLoading(false);
     }
   };
+  
+  
+  
+  const handleDelete = async () => {
+    try {
+      setDeleteLoading(true);
+      await deleteDoc(doc(db, 'farmerInventory', deleteId));
+      toast({
+        title: 'Item deleted successfully.',
+        status: 'info',
+        duration: 3000,
+        isClosable: true,
+        position: 'top',
+      });
+      await fetchInventory(user.uid);
+      onDeleteClose();
+    } catch (error) {
+      toast({
+        title: 'Error deleting item.',
+        description: error.message,
+        status: 'error',
+        duration: 4000,
+        isClosable: true,
+        position: 'top',
+      });
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+  
 
   const openEditForm = item => {
     setIsEdit(true);
@@ -145,79 +213,156 @@ const FarmerInventory = () => {
     onDeleteOpen();
   };
 
-  const handleDelete = async () => {
-    try {
-      setDeleteLoading(true);
-      await deleteDoc(doc(db, 'farmerInventory', deleteId));
-      await fetchInventory(user.uid);
-      onDeleteClose();
-    } catch (error) {
-      alert('Error deleting item: ' + error.message);
-    } finally {
-      setDeleteLoading(false);
-    }
-  };
+  
 
   return (
     <DashBoardLayout>
       <Box bg={bg} p={6} borderRadius="md" boxShadow="md">
         <Stack direction={{ base: 'column', md: 'row' }} justifyContent="space-between" alignItems="center" mb={4}>
           <Heading size="md">My Inventory</Heading>
-          <Button background="#39996B" color="white" onClick={() => {
-            setCurrentItem({ name: '', quantity: '', unit: '', price: '', image: '' });
-            setIsEdit(false);
-            setImageFile(null);
-            onFormOpen();
-          }}>
-            + Add New Item
-          </Button>
+          <Button
+  background="#39996B"
+  color="white"
+  _hover={{ background: '#2e7a58' }} // darker green on hover
+  onClick={() => {
+    setCurrentItem({ name: '', quantity: '', unit: '', price: '', image: '' });
+    setIsEdit(false);
+    setImageFile(null);
+    onFormOpen();
+  }}
+>
+  + Add New Item
+</Button>
+
         </Stack>
 
         {/* Add/Edit Modal */}
         <Modal isOpen={isFormOpen} onClose={onFormClose} size="lg" isCentered>
-          <ModalOverlay />
-          <ModalContent>
-            <ModalHeader>{isEdit ? 'Edit Item' : 'Add Inventory Item'}</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
-              <Stack spacing={3}>
-                {['Name', 'Quantity', 'Unit', 'Price (₦)'].map((label, index) => {
-                  const key = label.toLowerCase().split(' ')[0];
-                  return (
-                    <FormControl key={index}>
-                      <FormLabel>{label}</FormLabel>
-                      <Input
-                        value={currentItem[key]}
-                        onChange={e => setCurrentItem({ ...currentItem, [key]: e.target.value })}
-                        placeholder={`e.g. ${label === 'Price (₦)' ? '500' : label === 'Quantity' ? '100' : label}`}
-                      />
-                    </FormControl>
-                  );
-                })}
-                <FormControl>
-                  <FormLabel>Image</FormLabel>
-                  <Input
-                    type="file"
-                    onChange={e => setImageFile(e.target.files[0])}
-                  />
-                  {uploadingImage && <Spinner mt={2} size="sm" />}
-                </FormControl>
-              </Stack>
-            </ModalBody>
-            <ModalFooter>
-              <Button
-                background="#39996B"
-                color="white"
-                mr={3}
-                isLoading={submitLoading}
-                onClick={handleSubmit}
-              >
-                {isEdit ? 'Update' : 'Add'}
-              </Button>
-              <Button onClick={onFormClose} isDisabled={submitLoading}>Cancel</Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
+  <ModalOverlay />
+  <ModalContent>
+    <ModalHeader>{isEdit ? 'Edit Item' : 'Add Inventory Item'}</ModalHeader>
+    <ModalCloseButton />
+    <ModalBody>
+      <Stack spacing={3}>
+        {/* Name Field */}
+        <FormControl isRequired>
+          <FormLabel>Name</FormLabel>
+          <Input
+            type="text"
+            value={currentItem.name}
+            onChange={e => setCurrentItem({ ...currentItem, name: e.target.value })}
+            placeholder="e.g. Maize"
+          />
+        </FormControl>
+
+        {/* Quantity Field */}
+        <FormControl isRequired>
+          <FormLabel>Quantity</FormLabel>
+          <Input
+            type="number"
+            min="0"
+            value={currentItem.quantity}
+            onChange={e => setCurrentItem({ ...currentItem, quantity: e.target.value })}
+            placeholder="e.g. 100"
+          />
+        </FormControl>
+
+        {/* Unit Field */}
+        <FormControl isRequired>
+          <FormLabel>Unit</FormLabel>
+          <Input
+            type="text"
+            value={currentItem.unit}
+            onChange={e => setCurrentItem({ ...currentItem, unit: e.target.value })}
+            placeholder="e.g. kg"
+          />
+        </FormControl>
+
+        {/* Price Field */}
+        <FormControl isRequired>
+          <FormLabel>Price (₦)</FormLabel>
+          <Input
+            type="number"
+            min="0"
+            value={currentItem.price}
+            onChange={e => setCurrentItem({ ...currentItem, price: e.target.value })}
+            placeholder="e.g. 500"
+          />
+        </FormControl>
+
+        {/* Image Field */}
+        <FormControl isRequired>
+  <FormLabel>Image</FormLabel>
+
+  <Box as="label" htmlFor="imageFile" cursor="pointer" width="100%">
+    <Flex
+      direction="column"
+      gap={3}
+      border="2px dashed"
+      borderColor="gray.300"
+      borderRadius="md"
+      p={4}
+      align="center"
+      justify="center"
+      textAlign="center"
+      _hover={{ borderColor: 'teal.500', bg: 'gray.50' }}
+    >
+      {imageFile ? (
+        <Flex align="center" justifyContent="space-between" w="100%">
+          <Flex align="center" gap={2}>
+            <Icon as={TiDocument} fontSize="20px" color="teal.500" />
+            <Text fontSize="sm" isTruncated maxW="200px">
+              {imageFile.name}
+            </Text>
+          </Flex>
+          <Button size="sm" color="green" mt={2} background="transparent">
+            Re-upload
+          </Button>
+        </Flex>
+      ) : (
+        <Flex align="center" gap={2}>
+          <Icon as={AiOutlineCloudUpload} fontSize="20px" color="gray.500" />
+          <Text fontSize="sm" color="gray.500">Click to upload product image</Text>
+        </Flex>
+      )}
+    </Flex>
+    <Input
+      id="imageFile"
+      type="file"
+      hidden
+      accept=".jpg,.jpeg,.png"
+      onChange={e => setImageFile(e.target.files[0])}
+    />
+  </Box>
+
+  {uploadingImage && <Spinner mt={2} size="sm" />}
+</FormControl>
+
+      </Stack>
+    </ModalBody>
+    <ModalFooter>
+      <Button
+        background="#39996B"
+        _hover={{ background: '#2e7a58' }} // darker green on hover
+
+        color="white"
+        mr={3}
+        isLoading={submitLoading}
+        onClick={handleSubmit}
+        isDisabled={
+          !currentItem.name.trim() ||
+          !currentItem.quantity ||
+          !currentItem.unit.trim() ||
+          !currentItem.price
+        }
+      >
+        {isEdit ? 'Update' : 'Add'}
+      </Button>
+      <Button onClick={onFormClose} isDisabled={submitLoading}>Cancel</Button>
+    </ModalFooter>
+  </ModalContent>
+</Modal>
+
 
         {/* Delete Confirmation Modal */}
         <Modal isOpen={isDeleteOpen} onClose={onDeleteClose} isCentered>

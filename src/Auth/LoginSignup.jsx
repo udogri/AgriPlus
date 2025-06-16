@@ -28,9 +28,11 @@ const LoginSignup = () => {
   const [isSignup, setIsSignup] = useState(false);
   const toast = useToast();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
   const provider = new GoogleAuthProvider();
 
   const handleSubmit = async () => {
+    setLoading(true);
     try {
       if (isSignup) {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -87,11 +89,15 @@ const LoginSignup = () => {
         status: 'error',
         duration: 4000,
         isClosable: true,
+        position: 'top',
       });
+    }finally {
+      setLoading(false);
     }
   };
 
   const handleGoogleSignIn = async () => {
+    setLoading(true);
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
@@ -118,6 +124,7 @@ const LoginSignup = () => {
         status: 'success',
         duration: 3000,
         isClosable: true,
+        position: 'top',
       });
 
       if (userData?.adminId) {
@@ -149,6 +156,8 @@ const LoginSignup = () => {
         duration: 4000,
         isClosable: true,
       });
+    }finally {
+      setLoading(false);
     }
   };
 
@@ -188,7 +197,7 @@ const LoginSignup = () => {
           />
         </FormControl>
 
-        <Button colorScheme="blue" width="full" onClick={handleSubmit}>
+        <Button colorScheme="blue" width="full" onClick={handleSubmit} isLoading={loading}>
           {isSignup ? 'Sign Up' : 'Log In'}
         </Button>
 
