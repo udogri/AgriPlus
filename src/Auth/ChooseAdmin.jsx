@@ -1,11 +1,12 @@
-import React from 'react';
-import { Box, Button, Grid, GridItem, Text, VStack } from '@chakra-ui/react';
+import React, { useState } from 'react';
+import { Box, Button, Grid, GridItem, Text, VStack, Spinner } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import { doc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
 
 const ChooseAdmin = () => {
   const navigate = useNavigate();
+  const [loadingRole, setLoadingRole] = useState(null); // for tracking which button is loading
 
   const roles = [
     {
@@ -42,11 +43,9 @@ const ChooseAdmin = () => {
     const user = auth.currentUser;
     if (user) {
       try {
-        await updateDoc(doc(db, 'users', user.uid), {
-          adminId,
-        });
-  
-        // Redirect based on role
+        setLoadingRole(adminId);
+        await updateDoc(doc(db, 'users', user.uid), { adminId });
+
         switch (adminId) {
           case 'farmer':
             navigate('/farmer-signup');
@@ -65,12 +64,13 @@ const ChooseAdmin = () => {
         }
       } catch (err) {
         console.error('Failed to update adminId:', err);
+      } finally {
+        setLoadingRole(null);
       }
     } else {
-      navigate('/'); // fallback in case user is not logged in
+      navigate('/');
     }
   };
-  
 
   return (
     <Box px={['5%', '10%']} py="60px" minH="100vh" bg="#F9F9F9">
@@ -87,12 +87,19 @@ const ChooseAdmin = () => {
             cursor="pointer"
             boxShadow="md"
             _hover={{ transform: 'scale(1.03)', transition: '0.2s' }}
-            onClick={() => handleCardClick(role.adminId)}
           >
             <VStack align="start" spacing={4}>
               <Text fontSize="24px" fontWeight="bold">{role.title}</Text>
               <Text fontSize="14px" color="gray.600">{role.description}</Text>
-              <Button colorScheme="teal" alignSelf="start">{role.action}</Button>
+              <Button
+                colorScheme="teal"
+                alignSelf="start"
+                onClick={() => handleCardClick(role.adminId)}
+                isLoading={loadingRole === role.adminId}
+                loadingText="Processing"
+              >
+                {role.action}
+              </Button>
             </VStack>
           </GridItem>
         ))}

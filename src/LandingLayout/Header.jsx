@@ -58,10 +58,10 @@ export default function Header() {
         </Box>
         <Box gap={4} display={{ base: 'none', md: 'flex' }} alignItems="center">
           <Button w={{ md: "100px", lg: "113.5px" }} fontSize={{ md: "14px", lg: "16px" }} border="1px" bg="transparent" color="#39996B" _hover={{ bg: "#39996B", color: "white", border: "1px solid white" }} onClick={() => {
-            navigate("/sign-in")
+            navigate("/login")
           }} >Login</Button>
           <Button w={{ md: "100px", lg: "113.5px" }} fontSize={{ md: "14px", lg: "16px" }} border="1px" bg="#39996B" color="#ffff" _hover={{ bg: "transparent", color: "#39996B", border: "1px solid #39996B" }} onClick={() => {
-            navigate("/sign-up")
+            navigate("/login")
           }} >Sign in</Button>
         </Box>
         <IconButton

@@ -17,7 +17,7 @@ import { useNavigate } from 'react-router-dom';
 import { getAuth, signOut } from 'firebase/auth';
 
 
-export default function NavBar({ showSearch = true, onOpen, btnRef }) {
+export default function NavBar({  onOpen, btnRef }) {
   const toast = useToast();
   const navigate = useNavigate();
 
@@ -81,17 +81,7 @@ export default function NavBar({ showSearch = true, onOpen, btnRef }) {
         />
       </Flex>
 
-      {/* Center: Search */}
-      {showSearch && (
-        <Flex justify="center" flex="1">
-          <Input
-            placeholder="Search..."
-            maxW="300px"
-            size="sm"
-            bg="gray.100"
-          />
-        </Flex>
-      )}
+      
 
       {/* Right: Logout */}
       <Flex justify="flex-end" flex="1">
