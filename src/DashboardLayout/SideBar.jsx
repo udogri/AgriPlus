@@ -6,12 +6,25 @@ import {
   Button,
   Divider,
   Icon,
-  Flex,
 } from '@chakra-ui/react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { MdDashboard, MdOutlineInventory, MdHistory, MdSettings, MdLocalShipping, MdFavorite, MdListAlt, MdPets, MdDirectionsCar, MdCalendarToday } from 'react-icons/md';
+import {
+  MdDashboard,
+  MdOutlineInventory,
+  MdHistory,
+  MdSettings,
+  MdLocalShipping,
+  MdFavorite,
+  MdPets,
+  MdDirectionsCar,
+  MdCalendarToday,
+} from 'react-icons/md';
+import { TfiMoney } from "react-icons/tfi";
+
 
 export default function SideBar({ role = 'farmer' }) {
+  console.log("Current role in Sidebar:", role); // Add this inside SideBar component
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -35,9 +48,9 @@ export default function SideBar({ role = 'farmer' }) {
       { label: 'Settings', path: '/dashboard/logistics/settings', icon: MdSettings },
     ],
     buyer: [
-      { label: 'Dashboard', path: '/dashboard/buyer', icon: MdDashboard },
-      { label: 'Orders', path: '/dashboard/buyer/orders', icon: MdListAlt },
-      { label: 'Favorites', path: '/dashboard/buyer/favorites', icon: MdFavorite },
+      { label: 'Dashboard', path: '/buyer/dashboard', icon: MdDashboard },
+      { label: 'marketplace', path: '/buyer/market', icon: TfiMoney },
+      { label: 'community', path: '/dashboard/buyer/favorites', icon: MdFavorite },
       { label: 'Settings', path: '/dashboard/buyer/settings', icon: MdSettings },
     ],
   };

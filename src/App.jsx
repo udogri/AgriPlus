@@ -12,6 +12,8 @@ import SettingsPage from './Admins/Farmer/Settings';
 import LoginSignup from './Auth/LoginSignup';
 import ChooseAdmin from './Auth/ChooseAdmin';
 import FarmerSignupForm from './Auth/FarmerSignForm';
+import BuyerDashboard from './Admins/Buyer/Index';
+import MarketplacePage from './Admins/Buyer/MarketPlace';
 
 function App() {
   return (
@@ -30,6 +32,12 @@ function App() {
           <Route path="/farmer/inventory" element={<FarmerInventory />} />
           <Route path="/farmer/transactions" element={<FarmerTransactions />} />
           <Route path="/farmer/settings" element={<SettingsPage />} />
+
+          {/* Add more routes as needed */}
+          <Route path="/buyer/dashboard" element={<BuyerDashboard />} />
+          <Route path="/buyer/market" element={<MarketplacePage />} />
+          {/* <Route path="/farmer/transactions" element={<FarmerTransactions />} />
+          <Route path="/farmer/settings" element={<SettingsPage />} /> */}
 
           {/* Authentication */}
           <Route path="/farmer-signup" element={<FarmerSignupForm />} />
