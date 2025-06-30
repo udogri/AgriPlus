@@ -22,8 +22,11 @@ import {
         />
         <Stack spacing={2}>
           <Heading size="sm" noOfLines={1}>
-            {item.title}
+            {item.name}
           </Heading>
+          <Text fontSize="sm" color="gray.600" noOfLines={2}>
+            {item.quantity} {item.unit}
+          </Text>
           <Text fontSize="sm" color="gray.600" noOfLines={2}>
             {item.description}
           </Text>

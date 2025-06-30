@@ -52,7 +52,7 @@ import DashBoardLayout from "../../DashboardLayout";
   
       if (search.trim() !== "") {
         results = results.filter((item) =>
-          item.title?.toLowerCase().includes(search.toLowerCase())
+          item.name?.toLowerCase().includes(search.toLowerCase())
         );
       }
   
