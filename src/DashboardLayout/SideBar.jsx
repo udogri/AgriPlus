@@ -50,7 +50,7 @@ export default function SideBar({ role = 'farmer' }) {
     buyer: [
       { label: 'Dashboard', path: '/buyer/dashboard', icon: MdDashboard },
       { label: 'marketplace', path: '/buyer/market', icon: TfiMoney },
-      { label: 'community', path: '/dashboard/buyer/favorites', icon: MdFavorite },
+      { label: 'community', path: '/buyer/community', icon: MdFavorite },
       { label: 'Settings', path: '/dashboard/buyer/settings', icon: MdSettings },
     ],
   };
