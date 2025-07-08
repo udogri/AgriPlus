@@ -51,13 +51,13 @@ const ChooseAdmin = () => {
             navigate('/farmer-signup');
             break;
           case 'buyer':
-            navigate('/buyer/dashboard');
+            navigate('/buyer-signup');
             break;
           case 'logistics':
-            navigate('/logistics/dashboard');
+            // navigate('/logistics/dashboard');
             break;
           case 'veterinarian':
-            navigate('/veterinarian/dashboard');
+            // navigate('/veterinarian/dashboard');
             break;
           default:
             navigate('/');

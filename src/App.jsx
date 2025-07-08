@@ -15,6 +15,7 @@ import FarmerSignupForm from './Auth/FarmerSignForm';
 import BuyerDashboard from './Admins/Buyer/Index';
 import MarketplacePage from './Admins/Buyer/MarketPlace';
 import CommunityPage from './Admins/Buyer/Community';
+import BuyerSignup from './Auth/BuyerSignUpForm';
 
 function App() {
   return (
@@ -43,6 +44,7 @@ function App() {
 
           {/* Authentication */}
           <Route path="/farmer-signup" element={<FarmerSignupForm />} />
+          <Route path="/buyer-signup" element={<BuyerSignup />} />
 
           
         </Routes>

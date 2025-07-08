@@ -8,7 +8,7 @@ import DashBoardLayout from '../../DashboardLayout';
 
 const CommunityLayout = () => {
   return (
-    <DashBoardLayout>
+    <DashBoardLayout  role="buyer" active="community">
     <Box bg="gray.100" minH="100vh" py={6} px={4}>
       <Grid
         templateColumns={['1fr', '1fr', '250px 1fr 250px']}
