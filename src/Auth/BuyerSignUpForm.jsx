@@ -6,8 +6,8 @@ import {
 } from '@chakra-ui/react';
 import { AiOutlineCloudUpload } from 'react-icons/ai';
 import { TiDocument } from 'react-icons/ti';
-import { db } from '../firebaseConfig';
-import { collection, addDoc } from 'firebase/firestore';
+import { auth, db } from '../firebaseConfig';
+import { collection, addDoc, setDoc, doc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
 const FileUploadInput = ({ id, label, file, handleChange }) => (
@@ -153,8 +153,7 @@ const BuyerSignup = () => {
       delete dataToSubmit.profilePhoto;
       delete dataToSubmit.idDocument;
 
-      await addDoc(collection(db, 'farmers'), dataToSubmit);
-
+      await setDoc(doc(db, 'buyers', auth.currentUser.uid), dataToSubmit);
       toast({
         title: 'Success!',
         description: 'Buyer profile created.',

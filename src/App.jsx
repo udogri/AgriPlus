@@ -16,6 +16,7 @@ import BuyerDashboard from './Admins/Buyer/Index';
 import MarketplacePage from './Admins/Buyer/MarketPlace';
 import CommunityPage from './Admins/Buyer/Community';
 import BuyerSignup from './Auth/BuyerSignUpForm';
+import FarmerProfile from './Admins/Buyer/UserProfile';
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
           <Route path="/buyer/dashboard" element={<BuyerDashboard />} />
           <Route path="/buyer/market" element={<MarketplacePage />} />
           <Route path="/buyer/community" element={<CommunityPage />} />
+          <Route path="/buyer/profile/:uid" element={<FarmerProfile />} />
           {/* <Route path="/farmer/transactions" element={<FarmerTransactions />} />
           <Route path="/farmer/settings" element={<SettingsPage />} /> */}
 
