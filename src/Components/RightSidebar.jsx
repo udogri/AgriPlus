@@ -45,7 +45,7 @@ export default function RightSidebar() {
                     <Text fontSize="sm" color="gray.500">AgriTech Enthusiast</Text>
                 </VStack>
             )}
-            <Text fontWeight="bold" mb={3}>Suggested Groups</Text>
+            <Text fontWeight="bold" mb={3}>Requests</Text>
             <VStack align="start" spacing={3}>
                 {groups.map(group => (
                     <Box key={group.id}>
