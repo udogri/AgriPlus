@@ -11,10 +11,11 @@ const CommunityLayout = () => {
     <DashBoardLayout  role="buyer" active="community">
     <Box bg="gray.100" minH="100vh" py={6} px={4}>
       <Grid
-        templateColumns={['1fr', '1fr', ' 1fr 250px']}
-        gap={6}
-        maxW="1200px"
-        mx="auto"
+        templateColumns={['1fr', '1fr', '1fr 280px']}
+  alignItems="start"
+  gap={6}
+  maxW="1200px"
+  mx="auto"
       >
         <Feed />
         <RightSidebar />

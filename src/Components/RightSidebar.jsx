@@ -4,10 +4,12 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db } from '../firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
+import { TbUserPlus } from "react-icons/tb";
 
 const groups = [
-    { id: 1, name: 'Agri Innovators', members: 400 },
-    { id: 2, name: 'Poultry Experts', members: 220 },
+    { id: 1, name: 'Akarue Maro', members: 400 },
+    { id: 2, name: 'shaibu Musa', members: 220 },
+    { id: 3, name: 'Asiwaju Tinubu', members: 220 },
 ];
 
 export default function RightSidebar() {
@@ -33,8 +35,16 @@ export default function RightSidebar() {
 
 
     return (
-        <Box bg="white" p={4} borderRadius="lg" shadow="sm">
-            {loading ? (
+<Box
+  bg="white"
+  p={4}
+  borderRadius="lg"
+  shadow="sm"
+  h="calc(100vh - 100px)" // or set a specific height like "600px"
+  overflowY="auto"
+  position="sticky"
+  top="80px" // distance from top (adjust based on your navbar height)
+>            {loading ? (
                 <Spinner />
             ) : (
                 <VStack spacing={3} mb={4}>
@@ -45,16 +55,25 @@ export default function RightSidebar() {
                     <Text fontSize="sm" color="gray.500">AgriTech Enthusiast</Text>
                 </VStack>
             )}
-            <Text fontWeight="bold" mb={3}>Requests</Text>
+            
+            <Box display="flex" alignItems="center" gap="5px"  mb={3}>
+            <Text fontWeight="600" >Requests</Text> 
+            <TbUserPlus fontSize="2opx"/>
+            </Box>
             <VStack align="start" spacing={3}>
                 {groups.map(group => (
                     <Box key={group.id}>
+                    <Box display="flex" alignItems="center" gap={2} mb={2}>
+                    <Avatar size="sm" name={group.name} />
                         <Text>{group.name}</Text>
-                        <Text fontSize="sm" color="gray.500">{group.members} members</Text>
-                        <Button size="xs" mt={1} colorScheme="blue">Join</Button>
+                        </Box>
+                        {/* <Text fontSize="sm" color="gray.500">{group.members} members</Text> */}
+                        <Button fontSize="16px" border="2px solid" borderRadius="20px" mt={1} bg="transparent">Accept</Button>
                     </Box>
                 ))}
             </VStack>
+            <Text>see all requests</Text>
+            
         </Box>
     )
 };
