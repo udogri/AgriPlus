@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Box, Text, Image, VStack, HStack, SimpleGrid, Spinner, Button, useToast
+  Box, Text, Image, VStack, HStack, SimpleGrid, Spinner, Button, useToast, Avatar
 } from '@chakra-ui/react';
 import { doc, getDoc } from 'firebase/firestore';
 import { useParams } from 'react-router-dom';
-import { db, auth } from '../../firebaseConfig'; // Adjust the import path as necessary
+import { db, auth } from '../../firebaseConfig';
 
 const FarmerProfile = () => {
   const [buyer, setBuyer] = useState(null);
   const [loading, setLoading] = useState(true);
   const toast = useToast();
-  const { uid } = useParams(); // Use route like /farmer/profile/:uid
+  const { uid } = useParams(); // /farmer/profile/:uid
 
   useEffect(() => {
     const fetchFarmer = async () => {
@@ -18,10 +18,10 @@ const FarmerProfile = () => {
         const docRef = doc(db, 'buyers', uid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-            setBuyer(docSnap.data());
+          setBuyer(docSnap.data());
         } else {
           toast({
-            title: 'Farmer not found',
+            title: 'Profile not found',
             status: 'error',
             duration: 3000,
             isClosable: true,
@@ -45,7 +45,7 @@ const FarmerProfile = () => {
 
   if (loading) {
     return (
-      <Box mt="50px" textAlign="center">
+      <Box mt="60px" textAlign="center">
         <Spinner size="xl" />
       </Box>
     );
@@ -54,55 +54,66 @@ const FarmerProfile = () => {
   if (!buyer) return null;
 
   return (
-    <Box px={4} py={6}>
+    <Box maxW="900px" mx="auto" px={4} py={8}>
       {/* Profile Header */}
-      <HStack spacing={6} mb={6} alignItems="flex-start">
-        <Image
-          boxSize="120px"
-          borderRadius="full"
+      <HStack spacing={[4, 10]} mb={8} align="flex-start" flexWrap="wrap">
+        <Avatar
+          size="2xl"
+          name={buyer.fullName}
           src={buyer.profilePhotoUrl}
-          alt={buyer.fullName}
-          objectFit="cover"
+          border="2px solid"
+          borderColor="teal.500"
         />
-        <VStack align="start" spacing={1}>
-          <Text fontSize="2xl" fontWeight="bold">{buyer.fullName}</Text>
-          <Text color="gray.500">{buyer.email}</Text>
-          <Text>{buyer.phone}</Text>
-          <Text fontSize="sm" color="gray.600">
+        <VStack align="start" spacing={2} flex={1}>
+          <HStack spacing={4}>
+            <Text fontSize="2xl" fontWeight="bold">{buyer.fullName}</Text>
+            {auth.currentUser?.uid === uid && (
+              <Button size="sm" colorScheme="teal">Edit Profile</Button>
+            )}
+          </HStack>
+          <Text color="gray.600">{buyer.email}</Text>
+          <Text color="gray.600">{buyer.phone}</Text>
+          <Text fontSize="sm" color="gray.500">
             {buyer.farmAddress || 'No address provided'}
           </Text>
-
-          {/* Only show if this is current user */}
-          {auth.currentUser?.uid === uid && (
-            <Button colorScheme="teal" size="sm">Edit Profile</Button>
-          )}
         </VStack>
       </HStack>
 
       {/* Bio Section */}
-      <Box mb={6}>
-        <Text fontWeight="bold">Bio</Text>
+      <Box mb={8}>
+        <Text fontWeight="semibold" mb={1}>About</Text>
         <Text>Gender: {buyer.gender}</Text>
-        <Text>DOB: {buyer.dob}</Text>
+        <Text>Date of Birth: {buyer.dob}</Text>
         <Text>State: {buyer.state}</Text>
         <Text>LGA: {buyer.lga}</Text>
       </Box>
 
-      {/* "Posts" Section – grid style */}
-      <Text fontWeight="bold" mb={3}>Documents</Text>
-      <SimpleGrid columns={[2, null, 3]} spacing={4}>
-        {buyer.idDocumentUrl ? (
+      {/* Posts/Document Section */}
+      <Text fontWeight="bold" mb={4} fontSize="lg">Posts</Text>
+      {buyer.idDocumentUrl ? (
+        <SimpleGrid columns={[2, 3]} spacing={4}>
           <Image
             src={buyer.idDocumentUrl}
             borderRadius="md"
-            boxSize="100%"
             objectFit="cover"
-            alt="ID Document"
+            aspectRatio={1}
+            w="100%"
+            alt="Uploaded document"
+            fallbackSrc="https://via.placeholder.com/300x300?text=Image"
           />
-        ) : (
-          <Text>No document uploaded</Text>
-        )}
-      </SimpleGrid>
+        </SimpleGrid>
+      ) : (
+        <Box
+          border="2px dashed"
+          borderColor="gray.300"
+          borderRadius="md"
+          p={12}
+          textAlign="center"
+          color="gray.500"
+        >
+          <Text fontSize="md">No posts yet</Text>
+        </Box>
+      )}
     </Box>
   );
 };
