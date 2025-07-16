@@ -20,16 +20,38 @@ import {
   MdCalendarToday,
 } from 'react-icons/md';
 import { TfiMoney } from "react-icons/tfi";
+import { useEffect, useState } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth, db } from '../firebaseConfig';
+import { doc, getDoc } from 'firebase/firestore';
 
 
 export default function SideBar({ role = 'farmer' }) {
   console.log("Current role in Sidebar:", role); // Add this inside SideBar component
-
+  const [userData, setUserData] = useState({ fullName: '', profilePhotoUrl: '' });
+      const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
 
+  useEffect(() => {
+          const unsubscribe = onAuthStateChanged(auth, async (user) => {
+              if (user) {
+                  const docRef = doc(db, "farmers", "buyers", user.uid);
+                  const docSnap = await getDoc(docRef);
+                  console.log("User data fetched:", docSnap.data());
+                  if (docSnap.exists()) {
+                      setUserData(docSnap.data());
+                  }
+              }
+              setLoading(false);
+          });
+  
+          return () => unsubscribe();
+      }, []);
+
   const roleLinks = {
     farmer: [
+      { label: 'Home', path: '/farmer/community', icon: MdFavorite },
       { label: 'Dashboard', path: '/farmer/dashboard', icon: MdDashboard },
       { label: 'Inventory', path: '/farmer/inventory', icon: MdOutlineInventory },
       { label: 'Transaction History', path: '/farmer/transactions', icon: MdHistory },
@@ -48,9 +70,9 @@ export default function SideBar({ role = 'farmer' }) {
       { label: 'Settings', path: '/dashboard/logistics/settings', icon: MdSettings },
     ],
     buyer: [
-      { label: 'Dashboard', path: '/buyer/dashboard', icon: MdDashboard },
+      { label: 'Home', path: '/buyer/community', icon: MdFavorite },
+      { label: 'Dashboard', path: `/buyer/dashboard/${auth.currentUser.uid}`, icon: MdDashboard },
       { label: 'marketplace', path: '/buyer/market', icon: TfiMoney },
-      { label: 'community', path: '/buyer/community', icon: MdFavorite },
       { label: 'Settings', path: '/dashboard/buyer/settings', icon: MdSettings },
     ],
   };

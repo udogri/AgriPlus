@@ -77,7 +77,7 @@ const LoginSignup = () => {
         });
 
         if (userData?.adminId) {
-          navigate(`/${userData.adminId}/dashboard`);
+          navigate(`/${userData.adminId}/community`);
         } else {
           navigate('/choose-admin'); // If no adminId, prompt to choose admin
         }
@@ -133,7 +133,7 @@ const LoginSignup = () => {
             navigate('/farmer/dashboard');
             break;
           case 'buyer':
-            navigate('/buyer/dashboard');
+            navigate('/buyer/community');
             break;
           case 'logistics':
             navigate('/logistics/dashboard');

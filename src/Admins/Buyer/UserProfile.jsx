@@ -72,20 +72,16 @@ const FarmerProfile = () => {
             )}
           </HStack>
           <Text color="gray.600">{buyer.email}</Text>
-          <Text color="gray.600">{buyer.phone}</Text>
-          <Text fontSize="sm" color="gray.500">
+          {/* <Text color="gray.600">{buyer.phone}</Text> */}
+          {/* <Text fontSize="sm" color="gray.500">
             {buyer.farmAddress || 'No address provided'}
-          </Text>
+          </Text> */}
         </VStack>
       </HStack>
 
       {/* Bio Section */}
       <Box mb={8}>
-        <Text fontWeight="semibold" mb={1}>About</Text>
-        <Text>Gender: {buyer.gender}</Text>
-        <Text>Date of Birth: {buyer.dob}</Text>
-        <Text>State: {buyer.state}</Text>
-        <Text>LGA: {buyer.lga}</Text>
+        <Text fontWeight="semibold" mb={1}>Bio</Text>
       </Box>
 
       {/* Posts/Document Section */}

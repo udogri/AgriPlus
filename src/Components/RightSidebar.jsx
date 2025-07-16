@@ -49,7 +49,7 @@ export default function RightSidebar() {
             ) : (
                 <VStack spacing={3} mb={4}>
                     <Avatar size="xl" name={userData.fullName} src={userData.profilePhotoUrl} cursor="pointer" onClick={() => {
-                                navigate(`/buyer/profile/${auth.currentUser.uid}`)
+                                navigate(`/buyer/dashboard/${auth.currentUser.uid}`)
                             }}  />
                     <Text fontWeight="bold">{userData.fullName || 'Your Name'}</Text>
                     <Text fontSize="sm" color="gray.500">AgriTech Enthusiast</Text>

@@ -35,9 +35,11 @@ function App() {
           <Route path="/farmer/inventory" element={<FarmerInventory />} />
           <Route path="/farmer/transactions" element={<FarmerTransactions />} />
           <Route path="/farmer/settings" element={<SettingsPage />} />
+          <Route path="/farmer/community" element={<CommunityPage />} />
+
 
           {/* Add more routes as needed */}
-          <Route path="/buyer/dashboard" element={<BuyerDashboard />} />
+          <Route path="/buyer/dashboard/:uid" element={<BuyerDashboard />} />
           <Route path="/buyer/market" element={<MarketplacePage />} />
           <Route path="/buyer/community" element={<CommunityPage />} />
           <Route path="/buyer/profile/:uid" element={<FarmerProfile />} />
