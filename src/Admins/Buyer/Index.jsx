@@ -1,18 +1,10 @@
 // src/pages/DashboardPage.jsx
 import {
   Box,
-  Heading,
-  SimpleGrid,
-  Stat,
-  StatLabel,
-  StatNumber,
-  Button,
   Text,
-  Flex,
   Icon,
   Avatar,
   Spinner,
-  HStack,
   VStack,
   Menu,
   MenuButton,
@@ -28,24 +20,45 @@ import {
   ModalFooter,
   Input,
   ModalCloseButton,
-  Center,
   Image,
+  Button
 } from "@chakra-ui/react";
-import { MdOutlineShoppingCart } from "react-icons/md";
-import { TbTruckDelivery } from "react-icons/tb";
 import { FiMoreVertical, FiUpload } from "react-icons/fi";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db } from "../../firebaseConfig";
 import { useEffect, useState } from "react";
 import DashBoardLayout from "../../DashboardLayout";
 import { useParams } from "react-router-dom";
+import CreatePostModal from "../../Components/createPost";
 
 const DashboardPage = () => {
   const [buyer, setBuyer] = useState(null);
   const [loading, setLoading] = useState(true);
-  const toast = useToast();
   const { uid } = useParams();
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const toast = useToast();
+
+  // For Edit Profile modal
+  const {
+    isOpen: isEditOpen,
+    onOpen: onEditOpen,
+    onClose: onEditClose
+  } = useDisclosure();
+
+  // For Full Avatar modal
+  const {
+    isOpen: isAvatarOpen,
+    onOpen: onAvatarOpen,
+    onClose: onAvatarClose
+  } = useDisclosure();
+
+  // For Create Post modal
+  const {
+    isOpen: isPostOpen,
+    onOpen: onPostOpen,
+    onClose: onPostClose
+  } = useDisclosure();
+
   const [editData, setEditData] = useState({
     fullName: "",
     bio: "",
@@ -53,28 +66,29 @@ const DashboardPage = () => {
     coverPhotoUrl: ""
   });
 
+  const [profilePreview, setProfilePreview] = useState("");
+  const [coverPreview, setCoverPreview] = useState("");
+
   useEffect(() => {
     const fetchBuyer = async () => {
       try {
-        const docRef = doc(db, "buyers", uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setBuyer(docSnap.data());
-          setEditData(docSnap.data());
+        const ref = doc(db, "buyers", uid);
+        const snap = await getDoc(ref);
+        if (snap.exists()) {
+          const data = snap.data();
+          setBuyer(data);
+          setEditData(data);
+          setProfilePreview(data.profilePhotoUrl);
+          setCoverPreview(data.coverPhotoUrl);
         } else {
-          toast({
-            title: "Profile not found",
-            status: "error",
-            duration: 3000,
-            isClosable: true,
-          });
+          toast({ title: "Profile not found", status: "error", duration: 3000 });
         }
       } catch (err) {
         toast({
           title: "Error fetching profile",
           description: err.message,
           status: "error",
-          duration: 4000,
+          duration: 4000
         });
       } finally {
         setLoading(false);
@@ -84,22 +98,56 @@ const DashboardPage = () => {
     fetchBuyer();
   }, [uid]);
 
-  const handleSave = async () => {
-    try {
-      const ref = doc(db, "buyers", uid);
-      await updateDoc(ref, {
-        fullName: editData.fullName,
-        bio: editData.bio,
-        profilePhotoUrl: editData.profilePhotoUrl,
-        coverPhotoUrl: editData.coverPhotoUrl,
-      });
-      setBuyer({ ...buyer, ...editData });
-      toast({ title: "Profile updated", status: "success", duration: 3000 });
-      onClose();
-    } catch (err) {
-      toast({ title: "Error updating profile", description: err.message, status: "error" });
+  const handleFileChange = (e, field) => {
+    const file = e.target.files[0];
+    if (!file) return;
+  
+    if (field === "profile") {
+      setEditData((prev) => ({ ...prev, profileFile: file }));
+      setProfilePreview(URL.createObjectURL(file));
+    } else {
+      setEditData((prev) => ({ ...prev, coverFile: file }));
+      setCoverPreview(URL.createObjectURL(file));
     }
   };
+  
+
+
+const handleSave = async () => {
+  try {
+    const updates = {
+      fullName: editData.fullName,
+      bio: editData.bio || "",
+    };
+
+    // Upload profile photo if new
+    if (editData.profileFile) {
+      const profileRef = ref(storage, `profilePhotos/${uid}-${Date.now()}`);
+      await uploadBytes(profileRef, editData.profileFile);
+      updates.profilePhotoUrl = await getDownloadURL(profileRef);
+    }
+
+    // Upload cover photo if new
+    if (editData.coverFile) {
+      const coverRef = ref(storage, `coverPhotos/${uid}-${Date.now()}`);
+      await uploadBytes(coverRef, editData.coverFile);
+      updates.coverPhotoUrl = await getDownloadURL(coverRef);
+    }
+
+    await updateDoc(doc(db, "buyers", uid), updates);
+    setBuyer((prev) => ({ ...prev, ...updates }));
+    toast({ title: "Profile updated", status: "success", duration: 3000 });
+    onEditClose();
+  } catch (err) {
+    toast({
+      title: "Update failed",
+      description: err.message,
+      status: "error",
+      duration: 4000,
+    });
+  }
+};
+
 
   if (loading) {
     return (
@@ -114,14 +162,14 @@ const DashboardPage = () => {
   return (
     <DashBoardLayout active="buyer" role="buyer" showNav>
       <Box p={6} bg="gray.50" minH="100vh">
-        {/* Cover Image Header */}
         <Box position="relative" mb={24}>
           <Box
             h="200px"
-            bg="gray"
+            bgImage={`url(${buyer.coverPhotoUrl || ""})`}
             bgSize="cover"
             bgPosition="center"
             borderTopRadius="md"
+            bg="gray.200"
           />
           <Box
             position="absolute"
@@ -137,43 +185,31 @@ const DashboardPage = () => {
               border="4px solid white"
               mb={2}
               cursor="pointer"
-              onClick={onOpen}
+              onClick={onAvatarOpen}
             />
-            <Text fontWeight="bold" fontSize="xl">{buyer.fullName}</Text>
-            <Text color="gray.600" mb={2}>{buyer.bio || "No bio yet"}</Text>
-            
+            <Text fontWeight="bold" fontSize="xl">
+              {buyer.fullName}
+            </Text>
+            <Text color="gray.600" mb={2}>
+              {buyer.bio || "No bio yet"}
+            </Text>
           </Box>
           <Box position="absolute" top="10px" right="20px">
-          <Menu>
-              <MenuButton as={Button} size="sm" color="white" variant="none">
+            <Menu>
+              <MenuButton as={Button} size="sm" colorScheme="gray" variant="ghost">
                 <FiMoreVertical />
               </MenuButton>
               <MenuList>
-                <MenuItem onClick={onOpen}>Edit Profile</MenuItem>
+                <MenuItem onClick={onEditOpen}>Edit Profile</MenuItem>
                 <MenuItem>View Profile</MenuItem>
               </MenuList>
             </Menu>
-            </Box>
+          </Box>
         </Box>
 
-        {/* Stat Cards */}
-        {/* <SimpleGrid  columns={{ base: 1, md: 2 }} spacing={6}>
-          <StatCard
-            label="Open Orders"
-            number="4"
-            icon={MdOutlineShoppingCart}
-            color="green.500"
-          />
-          <StatCard
-            label="Deliveries in Transit"
-            number="2"
-            icon={TbTruckDelivery}
-            color="orange.500"
-          />
-        </SimpleGrid> */}
-
-        {/* Posts Placeholder */}
-        <Text mt={150} fontSize="xl" fontWeight="bold">Posts</Text>
+        <Text mt={150} fontSize="xl" fontWeight="bold">
+          Posts
+        </Text>
         <Box
           border="2px dashed"
           borderColor="gray.300"
@@ -183,15 +219,14 @@ const DashboardPage = () => {
           textAlign="center"
           color="gray.500"
         >
-          <Icon as={FiUpload} boxSize={10} mb={2} />
           <Text fontSize="md">You haven’t made any posts yet</Text>
-          <Button mt={4} size="sm" colorScheme="teal">
-            Create Post
-          </Button>
+          <Icon as={FiUpload} boxSize={10} mb={2} />
+          <Button onClick={onPostOpen} colorScheme="green" mt={4}>Create Post</Button>
+          <CreatePostModal isOpen={isPostOpen} onClose={onPostClose} />
         </Box>
 
         {/* Edit Profile Modal */}
-        <Modal isOpen={isOpen} onClose={onClose}>
+        <Modal isOpen={isEditOpen} onClose={onEditClose}>
           <ModalOverlay />
           <ModalContent>
             <ModalHeader>Edit Profile</ModalHeader>
@@ -209,23 +244,21 @@ const DashboardPage = () => {
                   onChange={(e) => setEditData({ ...editData, bio: e.target.value })}
                 />
                 <Input
-                  placeholder="Profile Photo URL"
-                  value={editData.profilePhotoUrl}
-                  onChange={(e) => setEditData({ ...editData, profilePhotoUrl: e.target.value })}
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleFileChange(e, "profile")}
                 />
-                {editData.profilePhotoUrl && (
-                  <Center w="full">
-                    <Avatar size="xl" src={editData.profilePhotoUrl} name={editData.fullName} />
-                  </Center>
+                {profilePreview && (
+                  <Avatar size="xl" src={profilePreview} name={editData.fullName} />
                 )}
                 <Input
-                  placeholder="Cover Photo URL"
-                  value={editData.coverPhotoUrl || ""}
-                  onChange={(e) => setEditData({ ...editData, coverPhotoUrl: e.target.value })}
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleFileChange(e, "cover")}
                 />
-                {editData.coverPhotoUrl && (
+                {coverPreview && (
                   <Image
-                    src={editData.coverPhotoUrl}
+                    src={coverPreview}
                     alt="Cover"
                     objectFit="cover"
                     width="100%"
@@ -242,23 +275,25 @@ const DashboardPage = () => {
             </ModalFooter>
           </ModalContent>
         </Modal>
+
+        {/* Full View Avatar Modal */}
+        <Modal isOpen={isAvatarOpen} onClose={onAvatarClose} isCentered size="xl">
+          <ModalOverlay />
+          <ModalContent bg="transparent" boxShadow="none">
+            <ModalCloseButton color="white" />
+            <Image
+              src={buyer.profilePhotoUrl}
+              alt="Full Profile"
+              borderRadius="full"
+              maxH="80vh"
+              objectFit="contain"
+              mx="auto"
+            />
+          </ModalContent>
+        </Modal>
       </Box>
     </DashBoardLayout>
   );
 };
-
-const StatCard = ({ label, number, icon, color }) => (
-  <Box bg="white" p={6} rounded="xl" shadow="md">
-    <Flex align="center" justify="space-between">
-      <Box>
-        <Stat>
-          <StatLabel>{label}</StatLabel>
-          <StatNumber fontSize="2xl">{number}</StatNumber>
-        </Stat>
-      </Box>
-      <Icon as={icon} boxSize={10} color={color} />
-    </Flex>
-  </Box>
-);
 
 export default DashboardPage;

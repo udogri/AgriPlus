@@ -52,7 +52,7 @@ export default function RightSidebar() {
                                 navigate(`/buyer/dashboard/${auth.currentUser.uid}`)
                             }}  />
                     <Text fontWeight="bold">{userData.fullName || 'Your Name'}</Text>
-                    <Text fontSize="sm" color="gray.500">AgriTech Enthusiast</Text>
+                    <Text fontSize="sm" color="gray.500">{userData.bio}</Text>
                 </VStack>
             )}
             
