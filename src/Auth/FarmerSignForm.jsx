@@ -1,5 +1,4 @@
-// FarmerSignup.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box, VStack, Text, Input, FormControl, FormLabel, Button, Select,
   Textarea, Progress, useToast, Flex, Icon
@@ -7,7 +6,7 @@ import {
 import { AiOutlineCloudUpload } from 'react-icons/ai';
 import { TiDocument } from 'react-icons/ti';
 import { auth, db } from '../firebaseConfig';
-import { collection, addDoc, setDoc, doc } from 'firebase/firestore';
+import { setDoc, doc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
 const FileUploadInput = ({ id, label, file, handleChange }) => (
@@ -59,15 +58,22 @@ const FileUploadInput = ({ id, label, file, handleChange }) => (
 const FarmerSignup = () => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const toast = useToast();
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     fullName: '', dob: '', gender: '', phone: '', email: '',
-    password: '', confirmPassword: '', profilePhoto: null,
-    country: '', state: '', lga: '', farmAddress: '',
+    profilePhoto: null, country: '', state: '', lga: '', farmAddress: '',
     idDocument: null, bankName: '', accountNumber: '', accountName: '', bvn: '',
   });
 
-  const toast = useToast();
-  const navigate = useNavigate();
+  useEffect(() => {
+    // Autofill email from Firebase Auth
+    const user = auth.currentUser;
+    if (user) {
+      setFormData(prev => ({ ...prev, email: user.email }));
+    }
+  }, []);
 
   const handleChange = (e) => {
     const { id, value, files } = e.target;
@@ -111,7 +117,7 @@ const FarmerSignup = () => {
   };
 
   const uploadImageToImgBB = async (file) => {
-    const apiKey = 'bc6aa3a9cee7036d9b191018c92c893a';
+    const apiKey = 'bc6aa3a9cee7036d9b191018c92c893a'; // you may want to secure this
     const form = new FormData();
     form.append('image', file);
 
@@ -153,7 +159,23 @@ const FarmerSignup = () => {
       delete dataToSubmit.profilePhoto;
       delete dataToSubmit.idDocument;
 
-      await setDoc(doc(db, 'farmers', auth.currentUser.uid), dataToSubmit);
+      const user = auth.currentUser;
+      if (!user) {
+        throw new Error("User not authenticated.");
+      }
+
+      const userId = user.uid;
+
+      // Save full profile
+      await setDoc(doc(db, 'farmers', userId), dataToSubmit);
+
+      // Save role reference in `users` collection
+      await setDoc(doc(db, 'users', userId), {
+        adminId: 'farmer',
+        fullName: formData.fullName,
+        email: formData.email
+      });
+
       toast({
         title: 'Success!',
         description: 'Farmer profile created.',
@@ -162,6 +184,7 @@ const FarmerSignup = () => {
         isClosable: true,
         position: 'top',
       });
+
       navigate('/farmer/dashboard');
     } catch (error) {
       console.error('Submit Error:', error);
@@ -195,12 +218,12 @@ const FarmerSignup = () => {
               </Select>
             </FormControl>
             <FormControl isRequired><FormLabel>Phone Number</FormLabel><Input id="phone" placeholder="080xxxxxxxx" value={formData.phone} onChange={handleChange} /></FormControl>
-            <FormControl><FormLabel>Email</FormLabel><Input id="email" type="email" placeholder="Enter your email" value={formData.email} onChange={handleChange} /></FormControl>
+            <FormControl><FormLabel>Email</FormLabel><Input id="email" type="email" placeholder="Enter your email" value={formData.email} readOnly /></FormControl>
             <FileUploadInput id="profilePhoto" label="Profile Photo" file={formData.profilePhoto} handleChange={handleChange} />
             <FormControl isRequired><FormLabel>Country</FormLabel><Input id="country" placeholder="Enter your country" value={formData.country} onChange={handleChange} /></FormControl>
             <FormControl isRequired><FormLabel>State / Province</FormLabel><Input id="state" placeholder="Enter your state or province" value={formData.state} onChange={handleChange} /></FormControl>
             <FormControl isRequired><FormLabel>LGA / District</FormLabel><Input id="lga" placeholder="Enter your LGA or district" value={formData.lga} onChange={handleChange} /></FormControl>
-            <FormControl><FormLabel>Farm/Home Address</FormLabel><Textarea id="farmAddress" placeholder="Enter your farm/home address" value={formData.homeAddress} onChange={handleChange} /></FormControl>
+            <FormControl><FormLabel>Farm/Home Address</FormLabel><Textarea id="farmAddress" placeholder="Enter your farm/home address" value={formData.farmAddress} onChange={handleChange} /></FormControl>
           </>
         )}
 
@@ -216,13 +239,13 @@ const FarmerSignup = () => {
 
         <Box width="100%" display="flex" justifyContent="space-between">
           {step > 1 && (
-            <Button background="#39996B" _hover={{ background: '#2e7a58' }} onClick={handleBack} colorScheme="teal" isDisabled={loading}>Previous</Button>
+            <Button background="#39996B" _hover={{ background: '#2e7a58' }} onClick={handleBack} isDisabled={loading}>Previous</Button>
           )}
           {step < 2 && (
-            <Button background="#39996B" _hover={{ background: '#2e7a58' }} onClick={handleNext} colorScheme="teal" isDisabled={loading}>Next</Button>
+            <Button background="#39996B" _hover={{ background: '#2e7a58' }} onClick={handleNext} isDisabled={loading}>Next</Button>
           )}
           {step === 2 && (
-            <Button background="#39996B" _hover={{ background: '#2e7a58' }} onClick={handleSubmit} colorScheme="teal" isLoading={loading}>Submit</Button>
+            <Button background="#39996B" _hover={{ background: '#2e7a58' }} onClick={handleSubmit} isLoading={loading}>Submit</Button>
           )}
         </Box>
       </VStack>

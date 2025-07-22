@@ -17,6 +17,7 @@ import MarketplacePage from './Admins/Buyer/MarketPlace';
 import CommunityPage from './Admins/Buyer/Community';
 import BuyerSignup from './Auth/BuyerSignUpForm';
 import FarmerProfile from './Admins/Buyer/UserProfile';
+import CommunityLayout from './Admins/Farmer/community2';
 
 function App() {
   return (
@@ -35,7 +36,9 @@ function App() {
           <Route path="/farmer/inventory" element={<FarmerInventory />} />
           <Route path="/farmer/transactions" element={<FarmerTransactions />} />
           <Route path="/farmer/settings" element={<SettingsPage />} />
-          <Route path="/farmer/community" element={<CommunityPage />} />
+          <Route path="/farmer/community" element={<CommunityLayout />} />
+          <Route path="/farmer/profile/:uid" element={<FarmerProfile />} />
+
 
 
           {/* Add more routes as needed */}

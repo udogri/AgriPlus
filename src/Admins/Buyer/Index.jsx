@@ -30,6 +30,7 @@ import { db } from "../../firebaseConfig";
 import { useEffect, useState } from "react";
 import DashBoardLayout from "../../DashboardLayout";
 import { useParams } from "react-router-dom";
+import { IoMdAddCircleOutline } from "react-icons/io";
 import CreatePostModal from "../../Components/createPost";
 
 const DashboardPage = () => {
@@ -201,7 +202,7 @@ const handleSave = async () => {
               </MenuButton>
               <MenuList>
                 <MenuItem onClick={onEditOpen}>Edit Profile</MenuItem>
-                <MenuItem>View Profile</MenuItem>
+                {/* <MenuItem>View Profile</MenuItem> */}
               </MenuList>
             </Menu>
           </Box>
@@ -220,8 +221,8 @@ const handleSave = async () => {
           color="gray.500"
         >
           <Text fontSize="md">You haven’t made any posts yet</Text>
-          <Icon as={FiUpload} boxSize={10} mb={2} />
-          <Button onClick={onPostOpen} colorScheme="green" mt={4}>Create Post</Button>
+          <Icon as={IoMdAddCircleOutline} boxSize={10} mt="50px" />
+          {/* <Button onClick={onPostOpen} colorScheme="green" mt={4}>Create Post</Button> */}
           <CreatePostModal isOpen={isPostOpen} onClose={onPostClose} />
         </Box>
 
