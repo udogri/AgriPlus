@@ -52,7 +52,7 @@ export default function SideBar({ role = 'farmer' }) {
   const roleLinks = {
     farmer: [
       { label: 'Home', path: '/farmer/community', icon: MdFavorite },
-      { label: 'Dashboard', path: '/farmer/dashboard', icon: MdDashboard },
+      { label: 'Dashboard', path: '/farmer/dashboard/:uid', icon: MdDashboard },
       { label: 'Inventory', path: '/farmer/inventory', icon: MdOutlineInventory },
       { label: 'Transaction History', path: '/farmer/transactions', icon: MdHistory },
       { label: 'Settings', path: '/farmer/settings', icon: MdSettings },

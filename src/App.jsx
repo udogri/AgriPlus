@@ -32,7 +32,7 @@ function App() {
           <Route path="/choose-admin" element={<ChooseAdmin />} />
 
           {/* Add more routes as needed */}
-          <Route path="/farmer/dashboard" element={<FarmerDashboard />} />
+          <Route path="/farmer/dashboard/:uid" element={<FarmerDashboard />} />
           <Route path="/farmer/inventory" element={<FarmerInventory />} />
           <Route path="/farmer/transactions" element={<FarmerTransactions />} />
           <Route path="/farmer/settings" element={<SettingsPage />} />

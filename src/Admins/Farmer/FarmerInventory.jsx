@@ -21,6 +21,7 @@ import {
   Icon,
   Spinner,
   Flex,
+  Select,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { db } from '../../firebaseConfig';
@@ -35,20 +36,19 @@ import {
   where,
 } from 'firebase/firestore';
 import axios from 'axios';
-import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
+import { DeleteIcon } from '@chakra-ui/icons';
 import DashBoardLayout from '../../DashboardLayout';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { useToast } from '@chakra-ui/react';
 import { AiOutlineCloudUpload } from 'react-icons/ai';
 import { TiDocument } from 'react-icons/ti';
 
-
-// ... imports remain unchanged
-
 const FarmerInventory = () => {
   const bg = useColorModeValue('white', 'gray.800');
   const [inventory, setInventory] = useState([]);
-  const [currentItem, setCurrentItem] = useState({ name: '', quantity: '', unit: '', price: '', image: '' });
+  const [currentItem, setCurrentItem] = useState({ 
+    name: '', quantity: '', unit: '', price: '', image: '', category: '' 
+  });
   const [imageFile, setImageFile] = useState(null);
   const [isEdit, setIsEdit] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
@@ -59,6 +59,15 @@ const FarmerInventory = () => {
   const [uploadingImage, setUploadingImage] = useState(false);
   const toast = useToast();
 
+  const categories = [
+    "Grains",
+    "Vegetables",
+    "Fruits",
+    "Seeds",
+    "Poultry",
+    "Dairy",
+    "Others"
+  ];
 
   const { isOpen: isFormOpen, onOpen: onFormOpen, onClose: onFormClose } = useDisclosure();
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
@@ -106,13 +115,12 @@ const FarmerInventory = () => {
 
   const handleSubmit = async () => {
     try {
-      const { name, quantity, unit, price } = currentItem;
+      const { name, quantity, unit, price, category } = currentItem;
   
-      // Basic field validation
-      if (!name || !quantity || !unit || !price || (!isEdit && !imageFile)) {
+      if (!name || !quantity || !unit || !price || !category || (!isEdit && !imageFile)) {
         toast({
           title: 'Missing Fields',
-          description: 'Please fill in all required fields including an image.',
+          description: 'Please fill in all required fields including an image and category.',
           status: 'warning',
           duration: 3000,
           isClosable: true,
@@ -133,6 +141,7 @@ const FarmerInventory = () => {
         quantity,
         unit,
         price,
+        category,
         updatedAt: new Date().toISOString().split('T')[0],
         image: imageUrl,
         uid: user.uid,
@@ -155,7 +164,7 @@ const FarmerInventory = () => {
   
       await fetchInventory(user.uid);
       onFormClose();
-      setCurrentItem({ name: '', quantity: '', unit: '', price: '', image: '' });
+      setCurrentItem({ name: '', quantity: '', unit: '', price: '', image: '', category: '' });
       setImageFile(null);
       setIsEdit(false);
     } catch (error) {
@@ -171,8 +180,6 @@ const FarmerInventory = () => {
       setSubmitLoading(false);
     }
   };
-  
-  
   
   const handleDelete = async () => {
     try {
@@ -200,7 +207,6 @@ const FarmerInventory = () => {
       setDeleteLoading(false);
     }
   };
-  
 
   const openEditForm = item => {
     setIsEdit(true);
@@ -213,156 +219,158 @@ const FarmerInventory = () => {
     onDeleteOpen();
   };
 
-  
-
   return (
     <DashBoardLayout>
       <Box bg={bg} p={6} borderRadius="md" boxShadow="md">
         <Stack direction={{ base: 'column', md: 'row' }} justifyContent="space-between" alignItems="center" mb={4}>
           <Heading size="md">My Inventory</Heading>
           <Button
-  background="#39996B"
-  color="white"
-  _hover={{ background: '#2e7a58' }} // darker green on hover
-  onClick={() => {
-    setCurrentItem({ name: '', quantity: '', unit: '', price: '', image: '' });
-    setIsEdit(false);
-    setImageFile(null);
-    onFormOpen();
-  }}
->
-  + Add New Item
-</Button>
-
+            background="#39996B"
+            color="white"
+            _hover={{ background: '#2e7a58' }}
+            onClick={() => {
+              setCurrentItem({ name: '', quantity: '', unit: '', price: '', image: '', category: '' });
+              setIsEdit(false);
+              setImageFile(null);
+              onFormOpen();
+            }}
+          >
+            + Add New Item
+          </Button>
         </Stack>
 
         {/* Add/Edit Modal */}
         <Modal isOpen={isFormOpen} onClose={onFormClose} size="lg" isCentered>
-  <ModalOverlay />
-  <ModalContent>
-    <ModalHeader>{isEdit ? 'Edit Item' : 'Add Inventory Item'}</ModalHeader>
-    <ModalCloseButton />
-    <ModalBody>
-      <Stack spacing={3}>
-        {/* Name Field */}
-        <FormControl isRequired>
-          <FormLabel>Name</FormLabel>
-          <Input
-            type="text"
-            value={currentItem.name}
-            onChange={e => setCurrentItem({ ...currentItem, name: e.target.value })}
-            placeholder="e.g. Maize"
-          />
-        </FormControl>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>{isEdit ? 'Edit Item' : 'Add Inventory Item'}</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <Stack spacing={3}>
+                <FormControl isRequired>
+                  <FormLabel>Name</FormLabel>
+                  <Input
+                    type="text"
+                    value={currentItem.name}
+                    onChange={e => setCurrentItem({ ...currentItem, name: e.target.value })}
+                    placeholder="e.g. Maize"
+                  />
+                </FormControl>
 
-        {/* Quantity Field */}
-        <FormControl isRequired>
-          <FormLabel>Quantity</FormLabel>
-          <Input
-            type="number"
-            min="0"
-            value={currentItem.quantity}
-            onChange={e => setCurrentItem({ ...currentItem, quantity: e.target.value })}
-            placeholder="e.g. 100"
-          />
-        </FormControl>
+                <FormControl isRequired>
+                  <FormLabel>Quantity</FormLabel>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={currentItem.quantity}
+                    onChange={e => setCurrentItem({ ...currentItem, quantity: e.target.value })}
+                    placeholder="e.g. 100"
+                  />
+                </FormControl>
 
-        {/* Unit Field */}
-        <FormControl isRequired>
-          <FormLabel>Unit</FormLabel>
-          <Input
-            type="text"
-            value={currentItem.unit}
-            onChange={e => setCurrentItem({ ...currentItem, unit: e.target.value })}
-            placeholder="e.g. kg"
-          />
-        </FormControl>
+                <FormControl isRequired>
+                  <FormLabel>Unit</FormLabel>
+                  <Input
+                    type="text"
+                    value={currentItem.unit}
+                    onChange={e => setCurrentItem({ ...currentItem, unit: e.target.value })}
+                    placeholder="e.g. kg"
+                  />
+                </FormControl>
 
-        {/* Price Field */}
-        <FormControl isRequired>
-          <FormLabel>Price (₦)</FormLabel>
-          <Input
-            type="number"
-            min="0"
-            value={currentItem.price}
-            onChange={e => setCurrentItem({ ...currentItem, price: e.target.value })}
-            placeholder="e.g. 500"
-          />
-        </FormControl>
+                <FormControl isRequired>
+                  <FormLabel>Price (₦)</FormLabel>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={currentItem.price}
+                    onChange={e => setCurrentItem({ ...currentItem, price: e.target.value })}
+                    placeholder="e.g. 500"
+                  />
+                </FormControl>
 
-        {/* Image Field */}
-        <FormControl isRequired>
-  <FormLabel>Image</FormLabel>
+                {/* Category Field */}
+                <FormControl isRequired>
+                  <FormLabel>Category</FormLabel>
+                  <Select
+                    placeholder="Select Category"
+                    value={currentItem.category}
+                    onChange={e => setCurrentItem({ ...currentItem, category: e.target.value })}
+                  >
+                    {categories.map((cat, index) => (
+                      <option key={index} value={cat}>{cat}</option>
+                    ))}
+                  </Select>
+                </FormControl>
 
-  <Box as="label" htmlFor="imageFile" cursor="pointer" width="100%">
-    <Flex
-      direction="column"
-      gap={3}
-      border="2px dashed"
-      borderColor="gray.300"
-      borderRadius="md"
-      p={4}
-      align="center"
-      justify="center"
-      textAlign="center"
-      _hover={{ borderColor: 'teal.500', bg: 'gray.50' }}
-    >
-      {imageFile ? (
-        <Flex align="center" justifyContent="space-between" w="100%">
-          <Flex align="center" gap={2}>
-            <Icon as={TiDocument} fontSize="20px" color="teal.500" />
-            <Text fontSize="sm" isTruncated maxW="200px">
-              {imageFile.name}
-            </Text>
-          </Flex>
-          <Button size="sm" color="green" mt={2} background="transparent">
-            Re-upload
-          </Button>
-        </Flex>
-      ) : (
-        <Flex align="center" gap={2}>
-          <Icon as={AiOutlineCloudUpload} fontSize="20px" color="gray.500" />
-          <Text fontSize="sm" color="gray.500">Click to upload product image</Text>
-        </Flex>
-      )}
-    </Flex>
-    <Input
-      id="imageFile"
-      type="file"
-      hidden
-      accept=".jpg,.jpeg,.png"
-      onChange={e => setImageFile(e.target.files[0])}
-    />
-  </Box>
-
-  {uploadingImage && <Spinner mt={2} size="sm" />}
-</FormControl>
-
-      </Stack>
-    </ModalBody>
-    <ModalFooter>
-      <Button
-        background="#39996B"
-        _hover={{ background: '#2e7a58' }} // darker green on hover
-
-        color="white"
-        mr={3}
-        isLoading={submitLoading}
-        onClick={handleSubmit}
-        isDisabled={
-          !currentItem.name.trim() ||
-          !currentItem.quantity ||
-          !currentItem.unit.trim() ||
-          !currentItem.price
-        }
-      >
-        {isEdit ? 'Update' : 'Add'}
-      </Button>
-      <Button onClick={onFormClose} isDisabled={submitLoading}>Cancel</Button>
-    </ModalFooter>
-  </ModalContent>
-</Modal>
-
+                <FormControl isRequired>
+                  <FormLabel>Image</FormLabel>
+                  <Box as="label" htmlFor="imageFile" cursor="pointer" width="100%">
+                    <Flex
+                      direction="column"
+                      gap={3}
+                      border="2px dashed"
+                      borderColor="gray.300"
+                      borderRadius="md"
+                      p={4}
+                      align="center"
+                      justify="center"
+                      textAlign="center"
+                      _hover={{ borderColor: 'teal.500', bg: 'gray.50' }}
+                    >
+                      {imageFile ? (
+                        <Flex align="center" justifyContent="space-between" w="100%">
+                          <Flex align="center" gap={2}>
+                            <Icon as={TiDocument} fontSize="20px" color="teal.500" />
+                            <Text fontSize="sm" isTruncated maxW="200px">
+                              {imageFile.name}
+                            </Text>
+                          </Flex>
+                          <Button size="sm" color="green" mt={2} background="transparent">
+                            Re-upload
+                          </Button>
+                        </Flex>
+                      ) : (
+                        <Flex align="center" gap={2}>
+                          <Icon as={AiOutlineCloudUpload} fontSize="20px" color="gray.500" />
+                          <Text fontSize="sm" color="gray.500">Click to upload product image</Text>
+                        </Flex>
+                      )}
+                    </Flex>
+                    <Input
+                      id="imageFile"
+                      type="file"
+                      hidden
+                      accept=".jpg,.jpeg,.png"
+                      onChange={e => setImageFile(e.target.files[0])}
+                    />
+                  </Box>
+                  {uploadingImage && <Spinner mt={2} size="sm" />}
+                </FormControl>
+              </Stack>
+            </ModalBody>
+            <ModalFooter>
+              <Button
+                background="#39996B"
+                _hover={{ background: '#2e7a58' }}
+                color="white"
+                mr={3}
+                isLoading={submitLoading}
+                onClick={handleSubmit}
+                isDisabled={
+                  !currentItem.name.trim() ||
+                  !currentItem.quantity ||
+                  !currentItem.unit.trim() ||
+                  !currentItem.price ||
+                  !currentItem.category
+                }
+              >
+                {isEdit ? 'Update' : 'Add'}
+              </Button>
+              <Button onClick={onFormClose} isDisabled={submitLoading}>Cancel</Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
 
         {/* Delete Confirmation Modal */}
         <Modal isOpen={isDeleteOpen} onClose={onDeleteClose} isCentered>
@@ -405,6 +413,7 @@ const FarmerInventory = () => {
                   <Heading size="sm" mb={2}>{item.name}</Heading>
                   <Text><strong>Quantity:</strong> {item.quantity} {item.unit}</Text>
                   <Text><strong>Price:</strong> ₦{item.price}</Text>
+                  <Text><strong>Category:</strong> {item.category}</Text>
                   <Text><strong>Updated:</strong> {item.updatedAt}</Text>
                   <Stack direction="row" mt={3}>
                     <Button size="sm" onClick={() => openEditForm(item)}>Edit</Button>

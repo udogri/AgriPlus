@@ -86,6 +86,7 @@ import DashBoardLayout from "../../DashboardLayout";
             <option value="Vegetables">Vegetables</option>
             <option value="Grains">Grains</option>
             <option value="Seeds">Seeds</option>
+            <option value="Poultry">Poultry</option>
             <option value="Others">Others</option>
           </Select>
         </SimpleGrid>
