@@ -19,40 +19,43 @@ import {
   MdDirectionsCar,
   MdCalendarToday,
 } from 'react-icons/md';
-import { TfiMoney } from "react-icons/tfi";
+import { TfiMoney } from 'react-icons/tfi';
 import { useEffect, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db } from '../firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
 
-
 export default function SideBar({ role = 'farmer' }) {
-  console.log("Current role in Sidebar:", role); // Add this inside SideBar component
   const [userData, setUserData] = useState({ fullName: '', profilePhotoUrl: '' });
-      const [loading, setLoading] = useState(true);
+  const [uid, setUid] = useState(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-          const unsubscribe = onAuthStateChanged(auth, async (user) => {
-              if (user) {
-                  const docRef = doc(db, "farmers", "buyers", user.uid);
-                  const docSnap = await getDoc(docRef);
-                  console.log("User data fetched:", docSnap.data());
-                  if (docSnap.exists()) {
-                      setUserData(docSnap.data());
-                  }
-              }
-              setLoading(false);
-          });
-  
-          return () => unsubscribe();
-      }, []);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setUid(user.uid);
 
+        // ✅ Assuming buyers are stored in "buyers" collection
+        const docRef = doc(db, role === 'buyer' ? 'buyers' : 'farmers', user.uid);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          setUserData(docSnap.data());
+        }
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [role]);
+
+  // Links based on role
   const roleLinks = {
     farmer: [
       { label: 'Home', path: '/farmer/community', icon: MdFavorite },
-      { label: 'Dashboard', path: '/farmer/dashboard/:uid', icon: MdDashboard },
+      { label: 'Dashboard', path: uid ? `/farmer/dashboard/${uid}` : '/farmer/dashboard', icon: MdDashboard },
       { label: 'Inventory', path: '/farmer/inventory', icon: MdOutlineInventory },
       { label: 'Transaction History', path: '/farmer/transactions', icon: MdHistory },
       { label: 'Settings', path: '/farmer/settings', icon: MdSettings },
@@ -71,8 +74,8 @@ export default function SideBar({ role = 'farmer' }) {
     ],
     buyer: [
       { label: 'Home', path: '/buyer/community', icon: MdFavorite },
-      { label: 'Dashboard', path: `/buyer/dashboard/${auth.currentUser.uid}`, icon: MdDashboard },
-      { label: 'marketplace', path: '/buyer/market', icon: TfiMoney },
+      { label: 'Dashboard', path: uid ? `/buyer/dashboard/${uid}` : '/buyer/dashboard', icon: MdDashboard },
+      { label: 'Marketplace', path: '/buyer/market', icon: TfiMoney },
       { label: 'Settings', path: '/dashboard/buyer/settings', icon: MdSettings },
     ],
   };
@@ -85,23 +88,25 @@ export default function SideBar({ role = 'farmer' }) {
         {role.charAt(0).toUpperCase() + role.slice(1)} Panel
       </Text>
       <Divider mb={4} />
-      <VStack align="stretch" spacing={3}>
-        {links.map((link) => {
-          const isActive = location.pathname === link.path;
-          return (
-            <Button
-              key={link.path}
-              onClick={() => navigate(link.path)}
-              color={isActive ? '#39996B' : 'black'}
-              variant={isActive ? 'solid' : 'ghost'}
-              justifyContent="flex-start"
-              leftIcon={<Icon as={link.icon} boxSize={5} />}
-            >
-              {link.label}
-            </Button>
-          );
-        })}
-      </VStack>
+      {!loading && (
+        <VStack align="stretch" spacing={3}>
+          {links.map((link) => {
+            const isActive = location.pathname === link.path;
+            return (
+              <Button
+                key={link.path}
+                onClick={() => navigate(link.path)}
+                color={isActive ? '#39996B' : 'black'}
+                variant={isActive ? 'solid' : 'ghost'}
+                justifyContent="flex-start"
+                leftIcon={<Icon as={link.icon} boxSize={5} />}
+              >
+                {link.label}
+              </Button>
+            );
+          })}
+        </VStack>
+      )}
     </Box>
   );
 }
