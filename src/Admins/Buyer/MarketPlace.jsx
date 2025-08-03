@@ -67,6 +67,11 @@ import DashBoardLayout from "../../DashboardLayout";
         <DashBoardLayout role="buyer" active="marketplace" showNav={true} showSearch={true}>
       <Box p={6} bg="gray.50" minH="100vh">
         <Heading mb={6}>Marketplace</Heading>
+        {/* <Flex justify="center" mt={20} mb={20}>
+  <Button colorScheme="green" onClick={postModal.onOpen}>
+  <IoIosAdd /> Make Post
+  </Button>
+</Flex> */}
   
         {/* Filters */}
         <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4} mb={8}>

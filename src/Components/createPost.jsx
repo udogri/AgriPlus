@@ -1,4 +1,5 @@
-// src/components/PostModal.jsx
+// src/components/CreatePost.jsx
+import { useState } from "react";
 import {
   Modal,
   ModalOverlay,
@@ -10,20 +11,28 @@ import {
   Button,
   Textarea,
   Input,
-  Image
+  Image,
+  useToast
 } from "@chakra-ui/react";
 
-const createPost = ({
-  isOpen,
-  onClose,
-  postContent,
-  setPostContent,
-  handleCreatePost,
-  submitting,
-  setImageFile,
-  imagePreview,
-  setImagePreview
-}) => {
+const CreatePost = ({ isOpen, onClose, handleCreatePost, submitting }) => {
+  const [postContent, setPostContent] = useState("");
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
+  const toast = useToast();
+
+  const handleSubmit = async () => {
+    if (!postContent.trim() && !imageFile) {
+      toast({ title: "Post cannot be empty", status: "warning" });
+      return;
+    }
+    await handleCreatePost({ postContent, imageFile });
+    setPostContent("");
+    setImageFile(null);
+    setImagePreview("");
+    onClose();
+  };
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered>
       <ModalOverlay />
@@ -41,14 +50,17 @@ const createPost = ({
             type="file"
             accept="image/*"
             onChange={(e) => {
-              setImageFile(e.target.files[0]);
-              setImagePreview(URL.createObjectURL(e.target.files[0]));
+              const file = e.target.files[0];
+              setImageFile(file);
+              if (file) {
+                setImagePreview(URL.createObjectURL(file));
+              }
             }}
           />
           {imagePreview && <Image src={imagePreview} mt={3} borderRadius="md" />}
         </ModalBody>
         <ModalFooter>
-          <Button colorScheme="green" onClick={handleCreatePost} isLoading={submitting}>
+          <Button colorScheme="green" onClick={handleSubmit} isLoading={submitting}>
             Post
           </Button>
           <Button variant="ghost" onClick={onClose} ml={3}>
@@ -60,4 +72,4 @@ const createPost = ({
   );
 };
 
-export default createPost;
+export default CreatePost;

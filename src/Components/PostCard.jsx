@@ -1,28 +1,86 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box, Text, HStack, Button, VStack, Avatar, Divider, Image
 } from '@chakra-ui/react';
-import { FaRegHeart } from "react-icons/fa";
+import { FaRegHeart, FaHeart } from "react-icons/fa";
 import { MdOutlineModeComment } from "react-icons/md";
 import { BiRepost } from "react-icons/bi";
-import { LuSend } from "react-icons/lu";
+import { db, auth } from '../firebaseConfig';
+import { doc, updateDoc, arrayUnion, arrayRemove, onSnapshot } from 'firebase/firestore';
+import CommentModal from './CommentModal';
 
 const PostCard = ({ post }) => {
-  const [likes, setLikes] = useState(post.likes);
-  const [comments, setComments] = useState(post.comments || []);
+  const [likes, setLikes] = useState(post.likes || []);
+  const [comments, setComments] = useState([]);
+  const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
+  const [reposts, setReposts] = useState(post.reposts || []);
+  const currentUser = auth.currentUser;
 
-  const handleComment = (text) => {
-    setComments((prev) => [...prev, { user: 'You', text }]);
+  useEffect(() => {
+    const postRef = doc(db, 'posts', post.id);
+    const unsubscribe = onSnapshot(postRef, (doc) => {
+      if (doc.exists()) {
+        const postData = doc.data();
+        setComments(postData.comments || []);
+      }
+    });
+    return unsubscribe;
+  }, [post.id]);
+
+  const handleLike = async () => {
+    const postRef = doc(db, 'posts', post.id);
+    if (likes.includes(currentUser.uid)) {
+      await updateDoc(postRef, {
+        likes: arrayRemove(currentUser.uid),
+      });
+      setLikes(likes.filter((id) => id !== currentUser.uid));
+    } else {
+      await updateDoc(postRef, {
+        likes: arrayUnion(currentUser.uid),
+      });
+      setLikes([...likes, currentUser.uid]);
+    }
+  };
+
+  const handleRepost = async () => {
+    const postRef = doc(db, 'posts', post.id);
+    if (reposts.includes(currentUser.uid)) {
+      await updateDoc(postRef, {
+        reposts: arrayRemove(currentUser.uid),
+      });
+      setReposts(reposts.filter((id) => id !== currentUser.uid));
+    } else {
+      await updateDoc(postRef, {
+        reposts: arrayUnion(currentUser.uid),
+      });
+      setReposts([...reposts, currentUser.uid]);
+    }
+  };
+
+  const openCommentModal = () => {
+    setIsCommentModalOpen(true);
+  };
+
+  const closeCommentModal = () => {
+    setIsCommentModalOpen(false);
   };
 
   return (
     <Box bg="white" p={5} borderRadius="lg" shadow="md" w="100%">
+      <CommentModal
+        isOpen={isCommentModalOpen}
+        onClose={closeCommentModal}
+        selectedPost={post}
+        currentUserId={currentUser?.uid}
+      />
       {/* Post Header */}
       <HStack align="start" spacing={4} mb={3}>
-        <Avatar name={post.user} />
+        <Avatar name={post.userName} src={post.userPhoto} />
         <Box>
-          <Text fontWeight="bold">{post.user}</Text>
-          <Text fontSize="sm" color="gray.500">Agriculture Professional</Text>
+          <Text fontWeight="bold">{post.userName}</Text>
+          <Text fontSize="sm" color="gray.500">
+            {post.createdAt?.toDate ? new Date(post.createdAt.toDate()).toLocaleString() : 'Just now'}
+          </Text>
         </Box>
       </HStack>
 
@@ -42,39 +100,18 @@ const PostCard = ({ post }) => {
       {/* Post Content */}
       <Text mb={3}>{post.content}</Text>
 
-      {/* Likes */}
-      <Box mb={3} gap={2} display="flex" justifyContent="start" alignItems="center">
-      <Button size="sm" width="50px" colorScheme="transparent" color="black" onClick={() => setLikes(likes + 1)}>
-      <FaRegHeart fontSize="20px" />{likes}
-      </Button>
-      <Button size="sm" width="50px" colorScheme="transparent" color="black" onClick={() => setLikes(likes + 1)}>
-      <MdOutlineModeComment fontSize="20px" />
-      </Button>
-      <Button size="sm" width="50px" colorScheme="transparent" color="black" onClick={() => setLikes(likes + 1)}>
-      <BiRepost fontSize="20px" />
-      </Button>
-      <Button size="sm" width="50px" colorScheme="transparent" color="black" onClick={() => setLikes(likes + 1)}>
-      <LuSend fontSize="20px" />
-      </Button>
-      </Box>
-
-      {/* Comments */}
-      <Divider my={4} />
-      <VStack spacing={3} align="stretch">
-        {comments.map((c, i) => (
-          <Box
-            key={i}
-            bg="gray.50"
-            p={2}
-            borderRadius="md"
-            fontSize="sm"
-          >
-            <Text><strong>{c.user}:</strong> {c.text}</Text>
-          </Box>
-        ))}
-
-        
-      </VStack>
+      {/* Likes, Comments, Reposts, Share */}
+      <HStack spacing={4} mb={3}>
+        <Button size="sm" colorScheme="transparent" color="black" onClick={handleLike} leftIcon={likes.includes(currentUser?.uid) ? <FaHeart color="red" /> : <FaRegHeart />}>
+          {likes.length}
+        </Button>
+        <Button size="sm" colorScheme="transparent" color="black" onClick={openCommentModal} leftIcon={<MdOutlineModeComment />}>
+          {comments.length}
+        </Button>
+        <Button size="sm" colorScheme="transparent" color="black" onClick={handleRepost} leftIcon={<BiRepost />}>
+          {reposts.length}
+        </Button>
+      </HStack>
     </Box>
   );
 };

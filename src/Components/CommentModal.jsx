@@ -28,18 +28,14 @@ import {
     Input
   } from "@chakra-ui/react";
   import { FiMoreVertical } from "react-icons/fi";
-  import { doc, updateDoc } from "firebase/firestore";
-  import { db } from "../firebaseConfig";
+  import { doc, updateDoc, arrayUnion } from "firebase/firestore";
+  import { db, auth } from "../firebaseConfig";
   import { useRef, useState } from "react";
   
   const CommentModal = ({
     isOpen,
     onClose,
     selectedPost,
-    commentText,
-    setCommentText,
-    handleAddComment,
-    commentSubmitting,
     currentUserId
   }) => {
     const toast = useToast();
@@ -50,6 +46,31 @@ import {
     const [deleteIndex, setDeleteIndex] = useState(null);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [processing, setProcessing] = useState(false);
+    const [commentText, setCommentText] = useState("");
+    const [commentSubmitting, setCommentSubmitting] = useState(false);
+  
+    const handleAddComment = async () => {
+      if (commentText.trim() === "") return;
+      setCommentSubmitting(true);
+      try {
+        const user = auth.currentUser;
+        const comment = {
+          content: commentText,
+          userId: user.uid,
+          userName: user.displayName,
+          userPhoto: user.photoURL,
+          createdAt: new Date(),
+        };
+        await updateDoc(doc(db, "posts", selectedPost.id), {
+          comments: arrayUnion(comment),
+        });
+        setCommentText("");
+      } catch (err) {
+        toast({ title: "Error adding comment", description: err.message, status: "error" });
+      } finally {
+        setCommentSubmitting(false);
+      }
+    };
   
     // Handle Save after edit
     const handleSaveEdit = async () => {
@@ -105,8 +126,8 @@ import {
                           <Text fontSize="xs" color="gray.500">
                             {comment.createdAt?.toDate
                               ? new Date(comment.createdAt.toDate()).toLocaleString()
-                              : comment.createdAt instanceof Date
-                              ? comment.createdAt.toLocaleString()
+                              : comment.createdAt && typeof comment.createdAt === 'object' && 'seconds' in comment.createdAt
+                              ? new Date(comment.createdAt.seconds * 1000).toLocaleString()
                               : "Just now"}
                           </Text>
                           {editingIndex === index ? (
@@ -223,4 +244,3 @@ import {
   };
   
   export default CommentModal;
-  

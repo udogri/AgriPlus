@@ -29,16 +29,16 @@ import { FaHeart, FaRegComment, FaRetweet, FaShareAlt } from "react-icons/fa";
 import { FiMoreVertical } from "react-icons/fi";
 import {
   collection,
-  getDocs,
-  query,
-  where,
-  orderBy,
   addDoc,
   deleteDoc,
   updateDoc,
   doc,
   getDoc,
-  serverTimestamp
+  serverTimestamp,
+  query,
+  where,
+  orderBy,
+  onSnapshot
 } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 import { useEffect, useState } from "react";
@@ -53,7 +53,6 @@ const DashboardPage = () => {
 
   const [buyer, setBuyer] = useState(null);
   const [posts, setPosts] = useState([]);
-  const [postContent, setPostContent] = useState("");
   const [loadingPosts, setLoadingPosts] = useState(true);
 
   const [selectedPost, setSelectedPost] = useState(null);
@@ -66,11 +65,16 @@ const DashboardPage = () => {
   const [editPhoto, setEditPhoto] = useState(null);
   const [previewPhoto, setPreviewPhoto] = useState("");
 
+  // Post edit states
+  const [editPostContent, setEditPostContent] = useState("");
+  const [editingPost, setEditingPost] = useState(null);
+
   const postModal = useDisclosure();
   const commentModal = useDisclosure();
   const editProfileModal = useDisclosure();
   const avatarModal = useDisclosure();
   const deleteModal = useDisclosure();
+  const editPostModal = useDisclosure();
 
   const [postToDelete, setPostToDelete] = useState(null);
 
@@ -90,26 +94,45 @@ const DashboardPage = () => {
           toast({ title: "Profile not found", status: "error" });
         }
       } catch (err) {
-        toast({ title: "Error fetching profile", description: err.message, status: "error" });
+        toast({
+          title: "Error fetching profile",
+          description: err.message,
+          status: "error"
+        });
       }
     };
     fetchBuyer();
-  }, [uid]);
+  }, [uid, toast]);
 
-  // Fetch posts
-  const fetchPosts = async () => {
-    try {
-      const q = query(collection(db, "posts"), where("uid", "==", uid), orderBy("createdAt", "desc"));
-      const snapshot = await getDocs(q);
-      setPosts(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
-    } catch (err) {
-      toast({ title: "Error fetching posts", description: err.message, status: "error" });
-    } finally {
-      setLoadingPosts(false);
-    }
-  };
+  // Real-time fetch posts
   useEffect(() => {
-    fetchPosts();
+    const userPostsQuery = query(
+      collection(db, "posts"),
+      where("uid", "==", uid),
+      orderBy("createdAt", "desc")
+    );
+
+    const repostsQuery = query(
+      collection(db, "posts"),
+      where("reposts", "array-contains", uid),
+      orderBy("createdAt", "desc")
+    );
+
+    const unsubscribeUserPosts = onSnapshot(userPostsQuery, (userPostsSnapshot) => {
+      const userPosts = userPostsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      
+      const unsubscribeReposts = onSnapshot(repostsQuery, (repostsSnapshot) => {
+        const reposts = repostsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        
+        const allPosts = [...userPosts, ...reposts].sort((a, b) => b.createdAt - a.createdAt);
+        setPosts(allPosts);
+        setLoadingPosts(false);
+      });
+
+      return () => unsubscribeReposts();
+    });
+
+    return () => unsubscribeUserPosts();
   }, [uid]);
 
   // Like post
@@ -119,7 +142,6 @@ const DashboardPage = () => {
       ? post.likes.filter((id) => id !== uid)
       : [...(post.likes || []), uid];
     await updateDoc(doc(db, "posts", post.id), { likes: updatedLikes });
-    fetchPosts();
   };
 
   // Retweet post
@@ -136,7 +158,6 @@ const DashboardPage = () => {
       retweetOf: post.id
     });
     toast({ title: "Post retweeted", status: "success" });
-    fetchPosts();
   };
 
   // Share post
@@ -151,7 +172,6 @@ const DashboardPage = () => {
     await deleteDoc(doc(db, "posts", postToDelete.id));
     toast({ title: "Post deleted", status: "info" });
     deleteModal.onClose();
-    fetchPosts();
   };
 
   // Add comment
@@ -168,10 +188,11 @@ const DashboardPage = () => {
         createdAt: new Date()
       }
     ];
-    await updateDoc(doc(db, "posts", selectedPost.id), { comments: updatedComments });
+    await updateDoc(doc(db, "posts", selectedPost.id), {
+      comments: updatedComments
+    });
     setCommentText("");
     setCommentSubmitting(false);
-    fetchPosts();
   };
 
   // Save profile changes
@@ -179,7 +200,6 @@ const DashboardPage = () => {
     try {
       let photoUrl = previewPhoto;
       if (editPhoto) {
-        // Convert to base64 for simplicity or use upload service
         const reader = new FileReader();
         reader.readAsDataURL(editPhoto);
         await new Promise((resolve) => (reader.onload = resolve));
@@ -196,6 +216,14 @@ const DashboardPage = () => {
     } catch (err) {
       toast({ title: "Error updating profile", description: err.message, status: "error" });
     }
+  };
+
+  // Edit post save
+  const handleSaveEditPost = async () => {
+    if (!editPostContent.trim()) return;
+    await updateDoc(doc(db, "posts", editingPost.id), { content: editPostContent });
+    toast({ title: "Post updated", status: "success" });
+    editPostModal.onClose();
   };
 
   if (!buyer)
@@ -242,12 +270,11 @@ const DashboardPage = () => {
           </Box>
         </Box>
 
-        <Flex justify="center" mt={20} mb={20}>
-  <Button colorScheme="green" onClick={postModal.onOpen}>
-    Make Post
-  </Button>
-</Flex>
-
+        <Flex justify="center">
+          <Button colorScheme="green" mt={20} mb={20} onClick={postModal.onOpen}>
+            Create Post
+          </Button>
+        </Flex>
 
         {loadingPosts ? (
           <Spinner />
@@ -272,7 +299,13 @@ const DashboardPage = () => {
                       <Menu>
                         <MenuButton as={IconButton} icon={<FiMoreVertical />} variant="ghost" />
                         <MenuList>
-                          <MenuItem onClick={() => toast({ title: "Edit coming soon", status: "info" })}>
+                          <MenuItem
+                            onClick={() => {
+                              setEditingPost(post);
+                              setEditPostContent(post.content);
+                              editPostModal.onOpen();
+                            }}
+                          >
                             Edit
                           </MenuItem>
                           <MenuItem
@@ -313,7 +346,7 @@ const DashboardPage = () => {
         )}
 
         {/* Create Post Modal */}
-        <CreatePost isOpen={postModal.isOpen} onClose={postModal.onClose} fetchPosts={fetchPosts} setPostContent={setPosts} uid={uid} />
+        <CreatePost isOpen={postModal.isOpen} onClose={postModal.onClose} uid={uid} buyer={buyer} />
 
         {/* Comment Modal */}
         <CommentModal
@@ -342,13 +375,38 @@ const DashboardPage = () => {
             <ModalHeader>Edit Profile</ModalHeader>
             <ModalCloseButton />
             <ModalBody>
-              <Input type="file" accept="image/*" onChange={(e) => setEditPhoto(e.target.files[0])} mb={3} />
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  setEditPhoto(e.target.files[0]);
+                  setPreviewPhoto(URL.createObjectURL(e.target.files[0]));
+                }}
+                mb={3}
+              />
               {previewPhoto && <Image src={previewPhoto} borderRadius="full" boxSize="100px" mb={3} />}
               <Input placeholder="Full name" value={editName} onChange={(e) => setEditName(e.target.value)} mb={3} />
               <Textarea placeholder="Bio" value={editBio} onChange={(e) => setEditBio(e.target.value)} />
             </ModalBody>
             <ModalFooter>
               <Button colorScheme="green" onClick={handleSaveProfile}>
+                Save
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+
+        {/* Edit Post Modal */}
+        <Modal isOpen={editPostModal.isOpen} onClose={editPostModal.onClose}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Edit Post</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <Textarea value={editPostContent} onChange={(e) => setEditPostContent(e.target.value)} />
+            </ModalBody>
+            <ModalFooter>
+              <Button colorScheme="green" onClick={handleSaveEditPost}>
                 Save
               </Button>
             </ModalFooter>
