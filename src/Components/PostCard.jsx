@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box, Text, HStack, Button, VStack, Avatar, Divider, Image
+  Box, Text, HStack, Button, VStack, Avatar, Divider, Image, useToast
 } from '@chakra-ui/react';
-import { FaRegHeart, FaHeart } from "react-icons/fa";
+import { FaRegHeart, FaHeart, FaShareAlt } from "react-icons/fa";
 import { MdOutlineModeComment } from "react-icons/md";
 import { BiRepost } from "react-icons/bi";
 import { db, auth } from '../firebaseConfig';
@@ -15,6 +15,7 @@ const PostCard = ({ post }) => {
   const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
   const [reposts, setReposts] = useState(post.reposts || []);
   const currentUser = auth.currentUser;
+  const toast = useToast();
 
   useEffect(() => {
     const postRef = doc(db, 'posts', post.id);
@@ -65,6 +66,12 @@ const PostCard = ({ post }) => {
     setIsCommentModalOpen(false);
   };
 
+  const handleShare = () => {
+    const shareUrl = `${window.location.origin}/post/${post.id}`;
+    navigator.clipboard.writeText(shareUrl);
+    toast({ title: "Post link copied", status: "info" });
+  };
+
   return (
     <Box bg="white" p={5} borderRadius="lg" shadow="md" w="100%">
       <CommentModal
@@ -110,6 +117,9 @@ const PostCard = ({ post }) => {
         </Button>
         <Button size="sm" colorScheme="transparent" color="black" onClick={handleRepost} leftIcon={<BiRepost />}>
           {reposts.length}
+        </Button>
+        <Button size="sm" colorScheme="transparent" color="black" onClick={handleShare} leftIcon={<FaShareAlt />}>
+          Share
         </Button>
       </HStack>
     </Box>

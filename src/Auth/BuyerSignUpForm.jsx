@@ -162,7 +162,7 @@ const BuyerSignup = () => {
         isClosable: true,
         position: 'top',
       });
-      navigate('/buyer/dashboard');
+      navigate('/buyer/dashboard/:uid');
     } catch (error) {
       console.error('Submit Error:', error);
       toast({

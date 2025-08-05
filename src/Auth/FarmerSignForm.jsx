@@ -185,7 +185,7 @@ const FarmerSignup = () => {
         position: 'top',
       });
 
-      navigate('/farmer/dashboard');
+      navigate('/farmer/dashboard/:uid');
     } catch (error) {
       console.error('Submit Error:', error);
       toast({

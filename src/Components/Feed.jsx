@@ -49,7 +49,7 @@ const Feed = () => {
       <Box bg="white" p={4} borderRadius="lg" shadow="sm" width="100%">
         <Input placeholder="Start a post..." mb={2} />
         <Button colorScheme="green" size="sm" onClick={openCreatePostModal}>
-          Post
+          Make post
         </Button>
       </Box>
 
