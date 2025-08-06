@@ -42,16 +42,27 @@ const CommunityLayout = () => {
   return (
     <DashBoardLayout role={role} active="community">
       <Box bg="gray.100" minH="100vh" py={6} px={4}>
-        <Grid
-          templateColumns={['1fr', '1fr', '1fr 280px']}
-          alignItems="start"
-          gap={6}
-          maxW="1200px"
-          mx="auto"
-        >
-          <Feed />
-          <RightSidebar />
-        </Grid>
+      <Grid
+  templateColumns={['1fr', null, '1fr']}
+  templateAreas={[
+    `"feed" 
+     "sidebar"`,  // Mobile (sidebar below feed)
+    null,
+    `"sidebar"
+     "feed"`       // Desktop (sidebar on top, feed below)
+  ]}
+  gap={6}
+  maxW="1200px"
+  mx="auto"
+>
+  <Box gridArea="sidebar">
+    <RightSidebar />
+  </Box>
+  <Box gridArea="feed">
+    <Feed />
+  </Box>
+</Grid>
+
       </Box>
     </DashBoardLayout>
   );

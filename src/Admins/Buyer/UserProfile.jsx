@@ -111,7 +111,7 @@ const FarmerProfile = () => {
 
   return (
     <Box maxW="900px" mx="auto" px={4} py={8}>
-      <HStack spacing={[4, 10]} mb={8} align="flex-start" flexWrap="wrap">
+      <HStack spacing={[4, 10]} mb={8} align="flex-start">
         <Avatar size="2xl" name={buyer.fullName} src={buyer.profilePhotoUrl} border="2px solid" borderColor="teal.500" />
         <VStack align="start" spacing={2} flex={1}>
           <HStack spacing={4}>

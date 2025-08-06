@@ -92,9 +92,9 @@ const PostCard = ({ post }) => {
       </HStack>
 
       {/* Post Image */}
-      {post.img && (
+      {post.imageUrl && (
         <Image
-          src={post.img}
+          src={post.imageUrl}
           alt="Post"
           borderRadius="md"
           objectFit="cover"

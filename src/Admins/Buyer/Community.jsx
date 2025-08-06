@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Grid, Spinner } from '@chakra-ui/react';
+import { Box, Grid, Spinner, GridItem, Input, Button } from '@chakra-ui/react';
 import LeftSidebar from '../../Components/LeftSidebar';
 import Feed from '../../Components/Feed';
 import RightSidebar from '../../Components/RightSidebar';
@@ -7,10 +7,13 @@ import DashBoardLayout from '../../DashboardLayout';
 import { auth, db } from '../../firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
+import CreatePostModal from '../../Components/CreatePostModal';
 
 const CommunityLayout = () => {
   const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isCreatePostModalOpen, setIsCreatePostModalOpen] = useState(false);
+
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -31,6 +34,14 @@ const CommunityLayout = () => {
     return () => unsubscribe();
   }, []);
 
+  const openCreatePostModal = () => {
+    setIsCreatePostModalOpen(true);
+  };
+
+  const closeCreatePostModal = () => {
+    setIsCreatePostModalOpen(false);
+  };
+
   if (loading) {
     return (
       <Box minH="100vh" display="flex" justifyContent="center" alignItems="center">
@@ -42,15 +53,35 @@ const CommunityLayout = () => {
   return (
     <DashBoardLayout role={role} active="community">
       <Box bg="gray.100" minH="100vh" py={6} px={4}>
+      <CreatePostModal
+        isOpen={isCreatePostModalOpen}
+        onClose={closeCreatePostModal}
+      />
+      <Box bg="white" p={4} borderRadius="lg" shadow="sm" width="100%" mb={6}>
+        <Input placeholder="Start a post..." mb={2} />
+        <Button colorScheme="green" size="sm" onClick={openCreatePostModal}>
+          Make post
+        </Button>
+      </Box>
         <Grid
-          templateColumns={['1fr', '1fr', '1fr 280px']}
-          alignItems="start"
+          templateAreas={{
+            base: `"right" "feed"`,
+            md: `"feed right"`,
+          }}
+          templateColumns={{
+            base: '1fr',
+            md: '1fr 280px',
+          }}
           gap={6}
           maxW="1200px"
           mx="auto"
         >
-          <Feed />
-          <RightSidebar />
+          <GridItem area="feed">
+            <Feed />
+          </GridItem>
+          <GridItem area="right">
+            <RightSidebar />
+          </GridItem>
         </Grid>
       </Box>
     </DashBoardLayout>

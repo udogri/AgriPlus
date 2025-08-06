@@ -8,7 +8,6 @@ import CreatePostModal from './CreatePostModal';
 const Feed = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isCreatePostModalOpen, setIsCreatePostModalOpen] = useState(false);
 
   useEffect(() => {
     const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
@@ -32,27 +31,10 @@ const Feed = () => {
     );
   }
 
-  const openCreatePostModal = () => {
-    setIsCreatePostModalOpen(true);
-  };
-
-  const closeCreatePostModal = () => {
-    setIsCreatePostModalOpen(false);
-  };
+  
 
   return (
     <VStack spacing={4}>
-      <CreatePostModal
-        isOpen={isCreatePostModalOpen}
-        onClose={closeCreatePostModal}
-      />
-      <Box bg="white" p={4} borderRadius="lg" shadow="sm" width="100%">
-        <Input placeholder="Start a post..." mb={2} />
-        <Button colorScheme="green" size="sm" onClick={openCreatePostModal}>
-          Make post
-        </Button>
-      </Box>
-
       {posts.map((post) => (
         <PostCard key={post.id} post={post} />
       ))}

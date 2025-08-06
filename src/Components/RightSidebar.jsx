@@ -68,18 +68,18 @@ export default function RightSidebar() {
 
   return (
     <Box
-      bg="white" p={4} borderRadius="lg" shadow="sm"
+      bg="white" p={4} borderRadius="lg" shadow="sm" width="100%"
       h="calc(100vh - 100px)" overflowY="auto" position="sticky" top="80px"
     >
       <VStack spacing={3} mb={4}>
         <Avatar
-          size="xl"
+          size={{'base': 'md', 'md': 'lg'}}
           name={userData.fullName}
           src={userData.profilePhotoUrl}
           cursor="pointer"
           onClick={handleClick}
         />
-        <Text fontWeight="bold">{userData.fullName || 'Your Name'}</Text>
+        <Text fontWeight="bold" fontSize={{base: "16px", md: "18px"}}>{userData.fullName || 'Your Name'}</Text>
         <Text fontSize="sm" color="gray.500">{userData.bio || ''}</Text>
       </VStack>
 

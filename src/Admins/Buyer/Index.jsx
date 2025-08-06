@@ -46,6 +46,7 @@ import { useParams } from "react-router-dom";
 import DashBoardLayout from "../../DashboardLayout";
 import CreatePost from "../../Components/createPost";
 import CommentModal from "../../Components/CommentModal";
+import { IoAddCircleOutline } from "react-icons/io5";
 
 const DashboardPage = () => {
   const toast = useToast();
@@ -235,45 +236,53 @@ const DashboardPage = () => {
 
   return (
     <DashBoardLayout active="buyer" role="buyer" showNav>
-      <Box p={6} bg="gray.50" minH="100vh">
+      <Box w="100%" overflowX="hidden">
+      <Flex direction="column" alignItems="center" w="100%">
         {/* Cover + Profile */}
-        <Box position="relative" mb={24}>
-          <Box
-            h="200px"
-            bgImage={`url(${buyer.coverPhotoUrl || ""})`}
-            bgSize="cover"
-            bgPosition="center"
-            borderTopRadius="md"
-            bg="gray.200"
-          />
-          <Box position="absolute" top="120px" left="12%" transform="translateX(-50%)">
-            <Avatar
-              size="2xl"
-              src={buyer.profilePhotoUrl}
-              name={buyer.fullName}
-              border="4px solid white"
-              cursor="pointer"
-              onClick={avatarModal.onOpen}
-            />
-            <Text fontWeight="bold" fontSize="xl" mt={2}>
-              {buyer.fullName}
-            </Text>
-            <Text color="gray.600">{buyer.bio || "No bio yet"}</Text>
-          </Box>
-          <Box position="absolute" top="10px" right="20px">
-            <Menu>
-              <MenuButton as={IconButton} icon={<FiMoreVertical />} variant="ghost" />
-              <MenuList>
-                <MenuItem onClick={editProfileModal.onOpen}>Edit Profile</MenuItem>
-              </MenuList>
-            </Menu>
-          </Box>
-        </Box>
+        <Box position="relative" mb={24} w="100%">
+  <Box
+    h="200px"
+    bgImage={`url(${buyer.coverPhotoUrl || ""})`}
+    bgSize="cover"
+    bgPosition="center"
+    borderTopRadius="md"
+    bg="gray.200"
+  />
+  {/* Avatar moved to left */}
+  <Box position="absolute" top="120px" left="20px">
+    <VStack align="flex-start" spacing={2}>
+      <Avatar
+        size="2xl"
+        src={buyer.profilePhotoUrl}
+        name={buyer.fullName}
+        border="4px solid white"
+        cursor="pointer"
+        onClick={avatarModal.onOpen}
+      />
+      <Text fontWeight="bold" fontSize="xl">
+        {buyer.fullName}
+      </Text>
+      <Text color="gray.600">{buyer.bio || "No bio yet"}</Text>
+    </VStack>
+  </Box>
+  
+  {/* Menu button stays top-right */}
+  <Box position="absolute" top="10px" right="20px">
+    <Menu>
+      <MenuButton as={IconButton} icon={<FiMoreVertical />} variant="ghost" />
+      <MenuList>
+        <MenuItem onClick={editProfileModal.onOpen}>Edit Profile</MenuItem>
+      </MenuList>
+    </Menu>
+  </Box>
+</Box>
+
 
         <Flex justify="center">
-          <Button colorScheme="green" mt={20} mb={20} onClick={postModal.onOpen}>
-            Create Post
-          </Button>
+          <Box colorScheme="green" align="center" mt={20} mb={20} onClick={postModal.onOpen}>
+          <IoAddCircleOutline color="green" cursor="pointer" fontSize="50px"/>
+          <Text color="green" fontSize="16px" >Create Post </Text>
+          </Box>
         </Flex>
 
         {loadingPosts ? (
@@ -428,6 +437,7 @@ const DashboardPage = () => {
             </ModalFooter>
           </ModalContent>
         </Modal>
+      </Flex>
       </Box>
     </DashBoardLayout>
   );
