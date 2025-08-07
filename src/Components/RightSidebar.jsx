@@ -80,11 +80,11 @@ export default function RightSidebar() {
           onClick={handleClick}
         />
         <Text fontWeight="bold" fontSize={{base: "16px", md: "18px"}}>{userData.fullName || 'Your Name'}</Text>
-        <Text fontSize="sm" color="gray.500">{userData.bio || ''}</Text>
+        <Text fontSize={{base:"12px", md: "16px"}} color="gray.500">{userData.bio || ''}</Text>
       </VStack>
 
       <Box display="flex" alignItems="center" gap="5px" mb={3}>
-        <Text fontWeight="600">Requests</Text>
+        <Text fontSize={{base:"12px", md: "16px"}} fontWeight="600">Requests</Text>
         <TbUserPlus fontSize="20px" />
       </Box>
 
@@ -95,12 +95,12 @@ export default function RightSidebar() {
           { id: 2, name: 'Shaibu Musa' },
         ].map(g => (
           <Box key={g.id}>
-            <Avatar size="sm" name={g.name} mr={2} /> <Text inline>{g.name}</Text>
-            <Button size="xs" mt={1}>Accept</Button>
+            <Avatar  size="sm" name={g.name} mr={2} /> <Text fontSize={{base:"12px", md: "16px"}} inline>{g.name}</Text>
+            <Button fontSize={{base:"12px", md: "16px"}} color="white" bg="green.400" mt={1}>Accept</Button>
           </Box>
         ))}
       </VStack>
-      <Text mt={4} fontSize="sm" color="blue.500" cursor="pointer">
+      <Text mt={4} fontSize={{base:"12px", md: "16px"}} color="blue.500" cursor="pointer">
         See all requests
       </Text>
     </Box>

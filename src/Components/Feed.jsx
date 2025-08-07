@@ -34,11 +34,12 @@ const Feed = () => {
   
 
   return (
-    <VStack spacing={4}>
-      {posts.map((post) => (
-        <PostCard key={post.id} post={post} />
-      ))}
-    </VStack>
+    <VStack spacing={4} w="100%" maxW="100%" overflowX="hidden">
+  {posts.map((post) => (
+    <PostCard key={post.id} post={post} />
+  ))}
+</VStack>
+
   );
 };
 

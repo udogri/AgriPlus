@@ -262,7 +262,7 @@ const DashboardPage = () => {
       <Text fontWeight="bold" fontSize="xl">
         {buyer.fullName}
       </Text>
-      <Text color="gray.600">{buyer.bio || "No bio yet"}</Text>
+      <Text color="gray.600">{buyer.bio || ""}</Text>
     </VStack>
   </Box>
   

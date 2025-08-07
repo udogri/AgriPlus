@@ -76,7 +76,7 @@ const CommunityLayout = () => {
           maxW="1200px"
           mx="auto"
         >
-          <GridItem area="feed">
+          <GridItem area="feed"  w="100%" maxW="100%" overflowX="hidden">
             <Feed />
           </GridItem>
           <GridItem area="right">

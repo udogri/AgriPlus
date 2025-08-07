@@ -84,8 +84,8 @@ const PostCard = ({ post }) => {
       <HStack align="start" spacing={4} mb={3}>
         <Avatar name={post.userName} src={post.userPhoto} />
         <Box>
-          <Text fontWeight="bold">{post.userName}</Text>
-          <Text fontSize="sm" color="gray.500">
+          <Text fontSize={{base:"12px", md: "16px"}} w="100%" maxW="100%" overflowX="hidden" fontWeight="bold">{post.userName}</Text>
+          <Text fontSize={{base:"12px", md: "16px"}}  color="gray.500">
             {post.createdAt?.toDate ? new Date(post.createdAt.toDate()).toLocaleString() : 'Just now'}
           </Text>
         </Box>
@@ -105,20 +105,20 @@ const PostCard = ({ post }) => {
       )}
 
       {/* Post Content */}
-      <Text mb={3}>{post.content}</Text>
+      <Text fontSize={{base:"12px", md: "16px"}} mb={3}>{post.content}</Text>
 
       {/* Likes, Comments, Reposts, Share */}
       <HStack spacing={4} mb={3}>
-        <Button size="sm" colorScheme="transparent" color="black" onClick={handleLike} leftIcon={likes.includes(currentUser?.uid) ? <FaHeart color="red" /> : <FaRegHeart />}>
+        <Button fontSize={{base:"12px", md: "16px"}} size="sm" colorScheme="transparent" color="black" onClick={handleLike} leftIcon={likes.includes(currentUser?.uid) ? <FaHeart color="red" /> : <FaRegHeart />}>
           {likes.length}
         </Button>
-        <Button size="sm" colorScheme="transparent" color="black" onClick={openCommentModal} leftIcon={<MdOutlineModeComment />}>
+        <Button fontSize={{base:"12px", md: "16px"}} size="sm" colorScheme="transparent" color="black" onClick={openCommentModal} leftIcon={<MdOutlineModeComment />}>
           {comments.length}
         </Button>
-        <Button size="sm" colorScheme="transparent" color="black" onClick={handleRepost} leftIcon={<BiRepost />}>
+        <Button fontSize={{base:"12px", md: "16px"}} size="sm" colorScheme="transparent" color="black" onClick={handleRepost} leftIcon={<BiRepost />}>
           {reposts.length}
         </Button>
-        <Button size="sm" colorScheme="transparent" color="black" onClick={handleShare} leftIcon={<FaShareAlt />}>
+        <Button fontSize={{base:"12px", md: "16px"}} size="sm" colorScheme="transparent" color="black" onClick={handleShare} leftIcon={<FaShareAlt />}>
           Share
         </Button>
       </HStack>
