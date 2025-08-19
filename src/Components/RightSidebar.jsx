@@ -37,26 +37,34 @@ export default function RightSidebar() {
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
-      if (!user) return setLoading(false);
+      if (!user) {
+        console.warn("⚠️ No authenticated user");
+        return setLoading(false);
+      }
+
+      console.log("✅ Authenticated user:", user.uid);
 
       try {
         const userSnap = await getDoc(doc(db, "users", user.uid));
         if (!userSnap.exists()) {
-          console.warn('User doc not found in "users" collection');
+          console.warn('⚠️ User doc not found in "users" collection');
           return;
         }
 
         const { adminId: role } = userSnap.data();
+        console.log("ℹ️ User role from users collection:", role);
+
         if (!role) {
-          console.warn("adminId not set in user doc");
+          console.warn("⚠️ adminId not set in user doc");
           return;
         }
 
         const profileSnap = await getDoc(doc(db, `${role}s`, user.uid));
         if (profileSnap.exists()) {
+          console.log("✅ Loaded profile data:", profileSnap.data());
           setUserData({ ...(profileSnap.data()), role });
         } else {
-          console.warn(`No ${role} profile at ${role}s/${user.uid}`);
+          console.warn(`⚠️ No ${role} profile at ${role}s/${user.uid}`);
         }
 
         // listen for incoming friend requests
@@ -65,10 +73,16 @@ export default function RightSidebar() {
           where("toId", "==", user.uid),
           where("status", "==", "pending")
         );
+        console.log("👀 Subscribing to friendRequests where toId =", user.uid);
+
         const unsubReq = onSnapshot(q, async (snap) => {
+          console.log("📩 Friend request snapshot received:", snap.size);
+
           const reqs = await Promise.all(
             snap.docs.map(async (d) => {
               const fromUser = await getDoc(doc(db, "users", d.data().fromId));
+              console.log("➡️ Request doc:", d.id, d.data());
+
               return {
                 id: d.id,
                 fromId: d.data().fromId,
@@ -81,12 +95,14 @@ export default function RightSidebar() {
               };
             })
           );
+
+          console.log("✅ Processed requests:", reqs);
           setRequests(reqs);
         });
 
         return () => unsubReq();
       } catch (e) {
-        console.error("Error loading sidebar data", e);
+        console.error("❌ Error loading sidebar data", e);
       } finally {
         setLoading(false);
       }
@@ -97,6 +113,8 @@ export default function RightSidebar() {
 
   const handleClick = () => {
     const { role } = userData;
+    console.log("👉 Avatar clicked, navigating to role:", role);
+
     if (role === "buyer") {
       navigate(`/buyer/dashboard/${auth.currentUser.uid}`);
     } else if (role === "farmer") {
@@ -106,7 +124,8 @@ export default function RightSidebar() {
 
   const acceptRequest = async (req) => {
     try {
-      // create connection doc
+      console.log("✅ Accepting request from:", req.fromId);
+
       const pairId = [auth.currentUser.uid, req.fromId].sort().join("_");
       await setDoc(doc(db, "connections", pairId), {
         a: auth.currentUser.uid,
@@ -114,22 +133,27 @@ export default function RightSidebar() {
         since: serverTimestamp(),
       });
 
-      // update request status
       await updateDoc(doc(db, "friendRequests", req.id), {
         status: "accepted",
       });
+
+      console.log("🎉 Request accepted and connection created");
     } catch (err) {
-      console.error("Error accepting request", err);
+      console.error("❌ Error accepting request", err);
     }
   };
 
   const declineRequest = async (req) => {
     try {
+      console.log("⚠️ Declining request from:", req.fromId);
+
       await updateDoc(doc(db, "friendRequests", req.id), {
         status: "declined",
       });
+
+      console.log("🚫 Request declined");
     } catch (err) {
-      console.error("Error declining request", err);
+      console.error("❌ Error declining request", err);
     }
   };
 

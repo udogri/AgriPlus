@@ -19,6 +19,7 @@ import BuyerSignup from './Auth/BuyerSignUpForm';
 import FarmerProfile from './Admins/Buyer/UserProfile';
 import CommunityLayout from './Admins/Farmer/community2';
 import ChatWindow from './Components/ChatWindow';
+import UsersList from './Components/UsersList';
 
 function App() {
   return (
@@ -56,6 +57,7 @@ function App() {
 
           {/* Add more routes as needed */}
           <Route path="/chat/:id" element={<ChatWindow />} />
+          <Route path="/userlist" element={<UsersList />} />
 
 
           
