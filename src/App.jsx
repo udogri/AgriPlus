@@ -18,6 +18,7 @@ import CommunityPage from './Admins/Buyer/Community';
 import BuyerSignup from './Auth/BuyerSignUpForm';
 import FarmerProfile from './Admins/Buyer/UserProfile';
 import CommunityLayout from './Admins/Farmer/community2';
+import ChatWindow from './Components/ChatWindow';
 
 function App() {
   return (
@@ -52,6 +53,10 @@ function App() {
           {/* Authentication */}
           <Route path="/farmer-signup" element={<FarmerSignupForm />} />
           <Route path="/buyer-signup" element={<BuyerSignup />} />
+
+          {/* Add more routes as needed */}
+          <Route path="/chat/:id" element={<ChatWindow />} />
+
 
           
         </Routes>

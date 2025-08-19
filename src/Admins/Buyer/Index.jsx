@@ -393,6 +393,7 @@ const DashboardPage = () => {
                 }}
                 mb={3}
               />
+              
               {previewPhoto && <Image src={previewPhoto} borderRadius="full" boxSize="100px" mb={3} />}
               <Input placeholder="Full name" value={editName} onChange={(e) => setEditName(e.target.value)} mb={3} />
               <Textarea placeholder="Bio" value={editBio} onChange={(e) => setEditBio(e.target.value)} />
