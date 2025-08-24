@@ -10,12 +10,17 @@ import DashBoardLayout from "../../DashboardLayout";
 import { MdOutlineShoppingCart } from "react-icons/md";
 import { LuUserRound } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
-import { collection, getDocs, query, where, deleteDoc, doc } from "firebase/firestore";
+import { collection, getDocs, query, where, deleteDoc, doc, getDoc } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
-import { getAuth } from "firebase/auth";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 export default function FarmerDashboard() {
-  const [displayName, setDisplayName] = useState("Farmer");
+  const [userData, setUserData] = useState({
+    fullName: "",
+    profilePhotoUrl: "",
+    bio: "",
+    role: "",
+  });
   const [inventory, setInventory] = useState([]);
   const [deleteId, setDeleteId] = useState(null);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
@@ -32,21 +37,42 @@ export default function FarmerDashboard() {
   useEffect(() => {
     if (!uid) return;
 
-    const fetchUser = async () => {
-      setIsLoadingUser(true);
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        console.warn("⚠️ No authenticated user");
+        return setIsLoadingUser(false);
+      }
+
+      console.log("✅ Authenticated user:", user.uid);
+
       try {
-        const userQuery = query(collection(db, "users"), where("uid", "==", uid));
-        const querySnapshot = await getDocs(userQuery);
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          if (data.displayName) setDisplayName(data.displayName);
-        });
-      } catch (error) {
-        console.error("Error fetching user:", error);
+        const userSnap = await getDoc(doc(db, "users", user.uid));
+        if (!userSnap.exists()) {
+          console.warn('⚠️ User doc not found in "users" collection');
+          return;
+        }
+
+        const { adminId: role } = userSnap.data();
+        console.log("ℹ️ User role from users collection:", role);
+
+        if (!role) {
+          console.warn("⚠️ adminId not set in user doc");
+          return;
+        }
+
+        const profileSnap = await getDoc(doc(db, `${role}s`, user.uid));
+        if (profileSnap.exists()) {
+          console.log("✅ Loaded profile data:", profileSnap.data());
+          setUserData({ ...(profileSnap.data()), role });
+        } else {
+          console.warn(`⚠️ No ${role} profile at ${role}s/${user.uid}`);
+        }
+      } catch (e) {
+        console.error("❌ Error loading sidebar data", e);
       } finally {
         setIsLoadingUser(false);
       }
-    };
+    });
 
     const fetchInventory = async () => {
       setIsLoadingInventory(true);
@@ -65,8 +91,8 @@ export default function FarmerDashboard() {
       }
     };
 
-    fetchUser();
     fetchInventory();
+    return () => unsub();
   }, [uid]);
 
   const handleDeleteConfirm = async () => {
@@ -87,9 +113,21 @@ export default function FarmerDashboard() {
   return (
     <DashBoardLayout active="Farmer">
       <Box p={5} bg={useColorModeValue("gray.50", "gray.800")} minH="100vh">
-        <Heading mb={6} color="black">
-          {isLoadingUser ? <Spinner size="sm" /> : `Welcome back, ${displayName}`}
-        </Heading>
+        <Flex align="center" mb={6} color="black">
+          {isLoadingUser ? (
+            <Spinner size="sm" />
+          ) : (
+            <>
+              <Avatar
+                size="md"
+                name={userData.fullName}
+                src={userData.profilePhotoUrl}
+                mr={4}
+              />
+              <Heading>{`Welcome back, ${userData.fullName}`}</Heading>
+            </>
+          )}
+        </Flex>
 
         <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={4} mb="20px">
           <Stat pt="15px" paddingBottom="15px" pl="23px" pr="23px" bgGradient="linear(to-r, #20553C, #C4EF4B)" borderRadius="md" gap={18}>

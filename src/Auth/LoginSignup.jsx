@@ -19,7 +19,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../firebaseConfig'; // Make sure db is exported from firebaseConfig
 import { FcGoogle } from 'react-icons/fc';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, getFirestore } from 'firebase/firestore';
 
 const LoginSignup = () => {
   const [username, setUsername] = useState('');
@@ -31,7 +31,7 @@ const LoginSignup = () => {
   const [loading, setLoading] = useState(false);
   const provider = new GoogleAuthProvider();
 
-  const handleSubmit = async () => {
+ const handleSubmit = async () => {
     setLoading(true);
     try {
       if (isSignup) {
@@ -41,14 +41,26 @@ const LoginSignup = () => {
         await updateProfile(user, { displayName: username });
 
         // Optional: Create a user document in Firestore
-        await setDoc(doc(db, 'users', user.uid), {
-          uid: user.uid, // ✅ Save unique user ID
-          email,
-          displayName: username,
-          createdAt: new Date().toISOString(),
-          adminId: '', // will be updated after role is chosen
-        });
-        
+        try {
+          await setDoc(doc(db, 'users', user.uid), {
+            uid: user.uid, // ✅ Save unique user ID
+            email,
+            displayName: username,
+            createdAt: new Date().toISOString(),
+            adminId: '', // will be updated after role is chosen
+          });
+        } catch (firestoreError) {
+          console.error("Firestore error:", firestoreError);
+          toast({
+            title: 'Firestore Error',
+            description: firestoreError.message,
+            status: 'error',
+            duration: 4000,
+            isClosable: true,
+            position: 'top',
+          });
+          return; // Exit if Firestore fails
+        }
 
         toast({
           title: 'Account created successfully.',
@@ -56,7 +68,6 @@ const LoginSignup = () => {
           duration: 3000,
           isClosable: true,
           position: 'top',
-
         });
 
         navigate('/choose-admin'); // ✅ Send to choose-admin after signup
@@ -73,7 +84,6 @@ const LoginSignup = () => {
           duration: 3000,
           isClosable: true,
           position: 'top',
-
         });
 
         if (userData?.adminId) {
@@ -83,15 +93,16 @@ const LoginSignup = () => {
         }
       }
     } catch (error) {
+      console.error("Authentication error:", error);
       toast({
-        title: 'Error',
+        title: 'Authentication Error',
         description: error.message,
         status: 'error',
         duration: 4000,
         isClosable: true,
         position: 'top',
       });
-    }finally {
+    } finally {
       setLoading(false);
     }
   };
@@ -107,15 +118,26 @@ const LoginSignup = () => {
       const userSnap = await getDoc(userRef);
 
       if (!userSnap.exists()) {
-        await setDoc(userRef, {
-          uid: user.uid, // ✅ add this
-          email: user.email,
-          displayName: user.displayName,
-          createdAt: new Date().toISOString(),
-          adminId: '', // will be updated later
-        });
+        try {
+          await setDoc(userRef, {
+            uid: user.uid, // ✅ add this
+            email: user.email,
+            displayName: user.displayName,
+            createdAt: new Date().toISOString(),
+            adminId: '', // will be updated later
+          });
+        } catch (firestoreError) {
+          console.error("Firestore error:", firestoreError);
+          toast({
+            title: 'Firestore Error',
+            description: firestoreError.message,
+            status: 'error',
+            duration: 4000,
+            isClosable: true,
+          });
+          return;
+        }
       }
-      
 
       const userData = (await getDoc(userRef)).data();
 
@@ -147,8 +169,9 @@ const LoginSignup = () => {
       } else {
         navigate('/choose-admin');
       }
-      
+
     } catch (error) {
+      console.error("Google Sign-In error:", error);
       toast({
         title: 'Google Sign-In Error',
         description: error.message,
@@ -156,7 +179,7 @@ const LoginSignup = () => {
         duration: 4000,
         isClosable: true,
       });
-    }finally {
+    } finally {
       setLoading(false);
     }
   };

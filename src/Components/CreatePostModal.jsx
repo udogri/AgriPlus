@@ -36,11 +36,16 @@ import {
     };
   
     const uploadImageToImgBB = async (file) => {
-      const apiKey = "bc6aa3a9cee7036d9b191018c92c893a"; // replace with env variable
-      const formData = new FormData();
-      formData.append("image", file);
-      const response = await axios.post(`https://api.imgbb.com/1/upload?key=${apiKey}`, formData);
-      return response.data.data.url;
+      try {
+        const apiKey = "bc6aa3a9cee7036d9b191018c92c893a"; // replace with env variable
+        const formData = new FormData();
+        formData.append("image", file);
+        const response = await axios.post(`https://api.imgbb.com/1/upload?key=${apiKey}`, formData);
+        return response.data.data.url;
+      } catch (error) {
+        console.error("ImgBB upload error:", error);
+        throw error; // Re-throw to be caught in handleSubmit
+      }
     };
   
     const handleSubmit = async () => {
@@ -52,24 +57,37 @@ import {
       try {
         let imageUrl = "";
         if (imageFile) {
-          imageUrl = await uploadImageToImgBB(imageFile);
+          try {
+            imageUrl = await uploadImageToImgBB(imageFile);
+          } catch (uploadError) {
+            console.error("Image upload error:", uploadError);
+            toast({ title: "Image upload failed", description: uploadError.message, status: "error", duration: 4000 });
+            setLoading(false);
+            return;
+          }
         }
   
-        await addDoc(collection(db, "posts"), {
-          uid,
-          content,
-          imageUrl,
-          createdAt: serverTimestamp()
-        });
+        try {
+          await addDoc(collection(db, "posts"), {
+            uid,
+            content,
+            imageUrl,
+            createdAt: serverTimestamp()
+          });
   
-        toast({ title: "Post created!", status: "success", duration: 3000 });
-        fetchPosts();
-        onClose();
-        setContent("");
-        setImageFile(null);
-        setPreview("");
+          toast({ title: "Post created!", status: "success", duration: 3000 });
+          fetchPosts();
+          onClose();
+          setContent("");
+          setImageFile(null);
+          setPreview("");
+        } catch (firestoreError) {
+          console.error("Firestore error:", firestoreError);
+          toast({ title: "Error creating post", description: firestoreError.message, status: "error", duration: 4000 });
+        }
       } catch (err) {
-        toast({ title: "Error creating post", description: err.message, status: "error" });
+        console.error("handleSubmit error:", err);
+        toast({ title: "Error creating post", description: err.message, status: "error", duration: 4000 });
       } finally {
         setLoading(false);
       }
@@ -123,4 +141,3 @@ import {
   };
   
   export default CreatePostModal;
-  

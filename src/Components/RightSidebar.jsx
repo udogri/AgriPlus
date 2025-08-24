@@ -70,22 +70,22 @@ export default function RightSidebar() {
         // listen for incoming friend requests
         const q = query(
           collection(db, "friendRequests"),
-          where("toId", "==", user.uid),
+          where("to", "==", user.uid),
           where("status", "==", "pending")
         );
-        console.log("👀 Subscribing to friendRequests where toId =", user.uid);
+        console.log("👀 Subscribing to friendRequests where to =", user.uid);
 
         const unsubReq = onSnapshot(q, async (snap) => {
           console.log("📩 Friend request snapshot received:", snap.size);
 
           const reqs = await Promise.all(
             snap.docs.map(async (d) => {
-              const fromUser = await getDoc(doc(db, "users", d.data().fromId));
+              const fromUser = await getDoc(doc(db, "users", d.data().from));
               console.log("➡️ Request doc:", d.id, d.data());
 
               return {
                 id: d.id,
-                fromId: d.data().fromId,
+                from: d.data().from,
                 fullName: fromUser.exists()
                   ? fromUser.data().fullName
                   : "Unknown User",
@@ -124,12 +124,12 @@ export default function RightSidebar() {
 
   const acceptRequest = async (req) => {
     try {
-      console.log("✅ Accepting request from:", req.fromId);
+      console.log("✅ Accepting request from:", req.from);
 
-      const pairId = [auth.currentUser.uid, req.fromId].sort().join("_");
+      const pairId = [auth.currentUser.uid, req.from].sort().join("_");
       await setDoc(doc(db, "connections", pairId), {
         a: auth.currentUser.uid,
-        b: req.fromId,
+        b: req.from,
         since: serverTimestamp(),
       });
 
@@ -145,7 +145,7 @@ export default function RightSidebar() {
 
   const declineRequest = async (req) => {
     try {
-      console.log("⚠️ Declining request from:", req.fromId);
+      console.log("⚠️ Declining request from:", req.from);
 
       await updateDoc(doc(db, "friendRequests", req.id), {
         status: "declined",

@@ -1,30 +1,63 @@
-// src/Components/FriendRequests.jsx
 import React, { useEffect, useState } from "react";
 import { Box, VStack, HStack, Avatar, Text, Button, Spinner } from "@chakra-ui/react";
-import { collection, query, where, onSnapshot, updateDoc, doc } from "firebase/firestore";
+import { collection, query, where, onSnapshot, updateDoc, doc, getDoc } from "firebase/firestore";
 import { db, auth } from "../firebaseConfig";
+import { onAuthStateChanged } from "firebase/auth";
 
 export default function FriendRequests() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const currentUser = auth.currentUser;
+  const [currentUser, setCurrentUser] = useState(null);
 
+  // Track logged in user
+  useEffect(() => {
+    const unsubAuth = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+    });
+    return () => unsubAuth();
+  }, []);
+
+  // Listen for friend requests
   useEffect(() => {
     if (!currentUser) return;
 
     const q = query(
       collection(db, "friendRequests"),
-      where("toId", "==", currentUser.uid),
+      where("to", "==", currentUser.uid),
       where("status", "==", "pending")
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const reqs = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+    const unsubReq = onSnapshot(q, async (snap) => {
+      console.log("📩 Friend request snapshot received:", snap.size);
+
+      const reqs = await Promise.all(
+        snap.docs.map(async (d) => {
+          const data = d.data();
+          console.log("➡️ Request doc:", d.id, data);
+
+          // fetch sender info from "users"
+          const fromUserRef = doc(db, "users", data.from);
+          const fromUserSnap = await getDoc(fromUserRef);
+
+          return {
+            id: d.id,
+            from: data.from,
+            fullName: fromUserSnap.exists()
+              ? fromUserSnap.data().fullName
+              : "Unknown User",
+            profilePhotoUrl: fromUserSnap.exists()
+              ? fromUserSnap.data().profilePhotoUrl
+              : "",
+          };
+        })
+      );
+
+      console.log("✅ Processed requests:", reqs);
       setRequests(reqs);
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => unsubReq();
   }, [currentUser]);
 
   const handleResponse = async (reqId, accept) => {
@@ -59,8 +92,8 @@ export default function FriendRequests() {
         {requests.map((req) => (
           <HStack key={req.id} justify="space-between">
             <HStack>
-              <Avatar size="sm" name={req.fromId} />
-              <Text>{req.fromId}</Text> {/* Optionally fetch sender's name from `users` collection */}
+              <Avatar size="sm" name={req.fullName} src={req.profilePhotoUrl} />
+              <Text>{req.fullName}</Text>
             </HStack>
             <HStack>
               <Button size="sm" colorScheme="green" onClick={() => handleResponse(req.id, true)}>

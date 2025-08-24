@@ -8,24 +8,40 @@ import {
   Button,
   Spinner,
 } from "@chakra-ui/react";
-import { collection, getDocs, doc, addDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  addDoc,
+  serverTimestamp,
+} from "firebase/firestore";
 import { db, auth } from "../firebaseConfig";
+import { onAuthStateChanged } from "firebase/auth";
 
 export default function UsersList() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const currentUser = auth.currentUser;
+  const [currentUser, setCurrentUser] = useState(null);
 
+  // Track auth state
   useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Fetch all users
+  useEffect(() => {
+    if (!currentUser) return;
+
     const fetchUsers = async () => {
       try {
         const snapshot = await getDocs(collection(db, "users"));
         const allUsers = snapshot.docs
           .map((d) => ({ id: d.id, ...d.data() }))
-          .filter((u) => u.id !== currentUser?.uid); // exclude self
+          .filter((u) => u.id !== currentUser.uid); // exclude self
         setUsers(allUsers);
         console.log("Fetched users:", allUsers);
-
       } catch (err) {
         console.error("Error fetching users:", err);
       } finally {
@@ -36,22 +52,22 @@ export default function UsersList() {
     fetchUsers();
   }, [currentUser]);
 
+  // Send friend request
+  const sendRequest = async (user) => {
+    if (!currentUser) return;
 
-const sendRequest = async (user) => {
-  try {
-    await addDoc(collection(db, "friendRequests"), {
-      from: currentUser.uid,
-      to: user.uid,
-      status: "pending",
-      createdAt: new Date(),
-    });
-    console.log("Friend request sent to", user.displayName);
-  } catch (error) {
-    console.error("Error sending request:", error);
-  }
-};
-
-  
+    try {
+      await addDoc(collection(db, "friendRequests"), {
+        from: currentUser.uid,   // ✅ guaranteed available
+        to: user.id,             // ✅ fixed from user.uid → user.id
+        status: "pending",
+        createdAt: serverTimestamp(),
+      });
+      console.log("Friend request sent to", user.displayName);
+    } catch (error) {
+      console.error("Error sending request:", error);
+    }
+  };
 
   if (loading) {
     return (
@@ -80,14 +96,14 @@ const sendRequest = async (user) => {
         {users.map((user) => (
           <HStack key={user.id} justify="space-between">
             <HStack>
-              <Avatar size="sm" name={user.fullName} src={user.profilePhotoUrl} />
-              <Text>{user.fullName}</Text>
+              <Avatar
+                size="sm"
+                name={user.displayName}
+                src={user.profilePhotoUrl}
+              />
+              <Text>{user.displayName}</Text>
             </HStack>
-            <Button
-              size="sm"
-              colorScheme="green"
-              onClick={() => sendRequest(user)}
-            >
+            <Button size="sm" colorScheme="green" onClick={() => sendRequest(user)}>
               Add Friend
             </Button>
           </HStack>
