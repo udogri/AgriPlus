@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Box, VStack, HStack, Avatar, Text, Button, Spinner } from "@chakra-ui/react";
-import { collection, query, where, onSnapshot, updateDoc, doc, getDoc } from "firebase/firestore";
+import { collection, query, where, onSnapshot, updateDoc, doc, getDoc, addDoc, serverTimestamp } from "firebase/firestore";
 import { db, auth } from "../firebaseConfig";
 import { onAuthStateChanged } from "firebase/auth";
 
@@ -60,11 +60,20 @@ export default function FriendRequests() {
     return () => unsubReq();
   }, [currentUser]);
 
-  const handleResponse = async (reqId, accept) => {
+  const handleResponse = async (reqId, fromUid, accept) => {
     try {
       await updateDoc(doc(db, "friendRequests", reqId), {
         status: accept ? "accepted" : "rejected",
       });
+
+      if (accept) {
+        // Add to friends collection
+        await addDoc(collection(db, "friends"), {
+          users: [currentUser.uid, fromUid],
+          createdAt: serverTimestamp(),
+        });
+        console.log("Friendship established between", currentUser.uid, "and", fromUid);
+      }
     } catch (err) {
       console.error("Error updating request:", err);
     }
@@ -96,10 +105,10 @@ export default function FriendRequests() {
               <Text>{req.fullName}</Text>
             </HStack>
             <HStack>
-              <Button size="sm" colorScheme="green" onClick={() => handleResponse(req.id, true)}>
+              <Button size="sm" colorScheme="green" onClick={() => handleResponse(req.id, req.from, true)}>
                 Accept
               </Button>
-              <Button size="sm" colorScheme="red" onClick={() => handleResponse(req.id, false)}>
+              <Button size="sm" colorScheme="red" onClick={() => handleResponse(req.id, req.from, false)}>
                 Reject
               </Button>
             </HStack>

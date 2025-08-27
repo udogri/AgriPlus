@@ -4,14 +4,14 @@ import {
   useToast, Avatar, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton,
   ModalBody, ModalFooter, Input, FormControl, FormLabel, Flex, Icon
 } from '@chakra-ui/react';
-import { doc, getDoc, addDoc, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
-import { useParams } from 'react-router-dom';
-import { db, auth } from '../../firebaseConfig';
+import { doc, getDoc, addDoc, collection, query, where, getDocs, orderBy, serverTimestamp, deleteDoc } from 'firebase/firestore';
+import { useParams, useNavigate } from 'react-router-dom';
+import { db, auth } from '../firebaseConfig';
 import { AiOutlineCloudUpload } from 'react-icons/ai';
 import axios from 'axios';
 import { onAuthStateChanged } from 'firebase/auth';
 
-const FarmerProfile = () => {
+const UserProfile = () => {
   const [buyer, setBuyer] = useState(null);
   const [loading, setLoading] = useState(true);
   const [posts, setPosts] = useState([]);
@@ -19,9 +19,11 @@ const FarmerProfile = () => {
   const [newPost, setNewPost] = useState({ caption: '', imageFile: null });
   const [submitting, setSubmitting] = useState(false);
   const [currentUserUid, setCurrentUserUid] = useState(null);
+  const [followStatus, setFollowStatus] = useState('none'); // 'none', 'following'
 
   const toast = useToast();
   const { uid } = useParams();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Watch authentication state
@@ -33,12 +35,30 @@ const FarmerProfile = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!currentUserUid || !uid) return;
+
       try {
-        const docRef = doc(db, 'buyers', uid);
+const docRef = doc(db, 'users', uid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          setBuyer(docSnap.data());
+setBuyer({ id: docSnap.id, ...docSnap.data() });
           console.log("URL UID:", uid, "Auth UID:", currentUserUid);
+
+          // Check follow status
+          if (currentUserUid !== uid) {
+            // Check if already following
+            const followingQuery = query(
+              collection(db, 'followers'),
+              where('followerId', '==', currentUserUid),
+              where('followingId', '==', uid)
+            );
+            const followingSnap = await getDocs(followingQuery);
+            if (!followingSnap.empty) {
+              setFollowStatus('following');
+            } else {
+              setFollowStatus('none');
+            }
+          }
         } else {
           toast({
             title: 'Profile not found',
@@ -48,7 +68,7 @@ const FarmerProfile = () => {
           });
         }
 
-        const q = query(collection(db, 'farmerPosts'), where('uid', '==', uid), orderBy('createdAt', 'desc'));
+const q = query(collection(db, 'posts'), where('uid', '==', uid), orderBy('createdAt', 'desc'));
         const snap = await getDocs(q);
         setPosts(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       } catch (err) {
@@ -60,6 +80,75 @@ const FarmerProfile = () => {
 
     fetchData();
   }, [uid, currentUserUid, toast]);
+
+  const toggleFollow = async () => {
+    if (!currentUserUid || !buyer) return;
+
+    try {
+      if (followStatus === 'following') {
+        // Unfollow
+        const followingQuery = query(
+          collection(db, 'followers'),
+          where('followerId', '==', currentUserUid),
+          where('followingId', '==', uid)
+        );
+        const followingSnap = await getDocs(followingQuery);
+        if (!followingSnap.empty) {
+          await deleteDoc(followingSnap.docs[0].ref);
+          setFollowStatus('none');
+          toast({ title: 'Unfollowed user', status: 'info', duration: 3000, isClosable: true });
+        }
+      } else {
+        // Follow
+        await addDoc(collection(db, 'followers'), {
+          followerId: currentUserUid,
+          followingId: buyer.id,
+          createdAt: serverTimestamp(),
+        });
+        setFollowStatus('following');
+        toast({ title: 'Followed user!', status: 'success', duration: 3000, isClosable: true });
+      }
+    } catch (error) {
+      console.error('Error toggling follow status:', error);
+      toast({ title: 'Error updating follow status', description: error.message, status: 'error', duration: 4000 });
+    }
+  };
+
+  const startChat = async () => {
+    if (!currentUserUid || !buyer) return;
+
+    try {
+      // Check if a chat already exists between these two users
+      const chatQuery = query(
+        collection(db, 'chats'),
+        where('users', 'array-contains', currentUserUid)
+      );
+      const chatSnap = await getDocs(chatQuery);
+
+      let existingChatId = null;
+      chatSnap.docs.forEach(doc => {
+        const chatUsers = doc.data().users;
+        if (chatUsers.includes(uid)) {
+          existingChatId = doc.id;
+        }
+      });
+
+      if (existingChatId) {
+        navigate(`/chat/${existingChatId}`);
+      } else {
+        // Create a new chat
+        const newChatRef = await addDoc(collection(db, 'chats'), {
+          users: [currentUserUid, uid],
+          createdAt: serverTimestamp(),
+          lastMessage: null,
+        });
+        navigate(`/chat/${newChatRef.id}`);
+      }
+    } catch (error) {
+      console.error('Error starting chat:', error);
+      toast({ title: 'Error starting chat', description: error.message, status: 'error', duration: 4000 });
+    }
+  };
 
   const handleImageUpload = async (file) => {
     const apiKey = 'bc6aa3a9cee7036d9b191018c92c893a';
@@ -77,7 +166,7 @@ const FarmerProfile = () => {
     try {
       setSubmitting(true);
       const imageUrl = await handleImageUpload(newPost.imageFile);
-      await addDoc(collection(db, 'farmerPosts'), {
+await addDoc(collection(db, 'posts'), {
         uid,
         caption: newPost.caption,
         imageUrl,
@@ -87,7 +176,7 @@ const FarmerProfile = () => {
       setIsModalOpen(false);
       setNewPost({ caption: '', imageFile: null });
 
-      const q = query(collection(db, 'farmerPosts'), where('uid', '==', uid), orderBy('createdAt', 'desc'));
+const q = query(collection(db, 'posts'), where('uid', '==', uid), orderBy('createdAt', 'desc'));
       const snap = await getDocs(q);
       setPosts(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     } catch (error) {
@@ -116,8 +205,17 @@ const FarmerProfile = () => {
         <VStack align="start" spacing={2} flex={1}>
           <HStack spacing={4}>
             <Text fontSize="2xl" fontWeight="bold">{buyer.fullName}</Text>
-            {isOwner && (
+            {isOwner ? (
               <Button size="sm" colorScheme="teal" onClick={() => setIsModalOpen(true)}>+ New Post</Button>
+            ) : (
+              <HStack>
+                {followStatus === 'none' ? (
+                  <Button size="sm" colorScheme="green" onClick={toggleFollow}>Follow</Button>
+                ) : (
+                  <Button size="sm" colorScheme="gray" onClick={toggleFollow}>Following</Button>
+                )}
+                <Button size="sm" colorScheme="blue" onClick={startChat}>Message</Button>
+              </HStack>
             )}
           </HStack>
           <Text color="gray.600">{buyer.email}</Text>
@@ -172,4 +270,4 @@ const FarmerProfile = () => {
   );
 };
 
-export default FarmerProfile;
+export default UserProfile;

@@ -9,6 +9,8 @@ import {
   MenuList,
   MenuItem,
   useToast,
+  Text,
+  Button,
 } from '@chakra-ui/react';
 import { HamburgerIcon } from '@chakra-ui/icons';
 import { MdLogout } from 'react-icons/md';
@@ -85,12 +87,21 @@ export default function NavBar({  onOpen, btnRef }) {
 
       {/* Right: Logout */}
       <Flex justify="flex-end" flex="1">
-        <Menu>
-          <MenuButton as={IconButton} icon={<MdLogout />} variant="ghost" fontSize="24px" color="green.500" />
-          <MenuList>
-            <MenuItem onClick={handleLogout}>Confirm Logout</MenuItem>
-          </MenuList>
-        </Menu>
+      <Menu>
+  <MenuButton
+    as={Button}
+    leftIcon={<MdLogout />}
+    variant="ghost"
+    fontSize="16px"
+    color="green.500"
+  >
+    Logout
+  </MenuButton>
+  <MenuList>
+    <MenuItem onClick={handleLogout}>Confirm Logout</MenuItem>
+  </MenuList>
+</Menu>
+
       </Flex>
     </Flex>
   );

@@ -18,19 +18,32 @@ const CommunityLayout = () => {
   const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isCreatePostModalOpen, setIsCreatePostModalOpen] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const [currentUserProfile, setCurrentUserProfile] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
+        setCurrentUserId(user.uid);
         const userDoc = await getDoc(doc(db, 'users', user.uid));
         if (userDoc.exists()) {
           const userData = userDoc.data();
-          setRole(userData.adminId || 'guest'); // e.g., 'farmer' or 'buyer'
+          const userRole = userData.adminId || 'guest';
+          setRole(userRole);
+
+          // Fetch full profile based on role
+          const profileCollection = userRole === 'buyer' ? 'buyers' : 'farmers';
+          const profileDoc = await getDoc(doc(db, profileCollection, user.uid));
+          if (profileDoc.exists()) {
+            setCurrentUserProfile(profileDoc.data());
+          }
         } else {
           setRole('guest');
         }
       } else {
+        setCurrentUserId(null);
+        setCurrentUserProfile(null);
         setRole('guest');
       }
       setLoading(false);
@@ -62,6 +75,10 @@ const CommunityLayout = () => {
         <CreatePostModal
           isOpen={isCreatePostModalOpen}
           onClose={closeCreatePostModal}
+          uid={currentUserId}
+          userName={currentUserProfile?.fullName}
+          userPhoto={currentUserProfile?.profilePhotoUrl}
+          fetchPosts={() => console.log("Posts fetched (real-time listener handles updates)")}
         />
 
         {/* Start a Post */}

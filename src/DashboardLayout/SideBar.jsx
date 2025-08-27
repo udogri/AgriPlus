@@ -26,7 +26,6 @@ import { auth, db } from '../firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
 
 export default function SideBar({ role = 'farmer' }) {
-  const [userData, setUserData] = useState({ fullName: '', profilePhotoUrl: '' });
   const [uid, setUid] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -39,11 +38,7 @@ export default function SideBar({ role = 'farmer' }) {
 
         // ✅ Assuming buyers are stored in "buyers" collection
         const docRef = doc(db, role === 'buyer' ? 'buyers' : 'farmers', user.uid);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-          setUserData(docSnap.data());
-        }
+        await getDoc(docRef); // Fetch the document, but no need to store docSnap if not used
       }
       setLoading(false);
     });
@@ -76,6 +71,7 @@ export default function SideBar({ role = 'farmer' }) {
       { label: 'Home', path: '/buyer/community', icon: MdFavorite },
       { label: 'Dashboard', path: uid ? `/buyer/dashboard/${uid}` : '/buyer/dashboard', icon: MdDashboard },
       { label: 'Marketplace', path: '/buyer/market', icon: TfiMoney },
+      { label: 'Find Friends', path: '/buyer/users', icon: MdFavorite }, // Using MdFavorite for now, can change later
       { label: 'Settings', path: '/dashboard/buyer/settings', icon: MdSettings },
     ],
   };

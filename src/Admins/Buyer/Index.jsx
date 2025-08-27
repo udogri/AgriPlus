@@ -44,7 +44,7 @@ import { db } from "../../firebaseConfig";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import DashBoardLayout from "../../DashboardLayout";
-import CreatePost from "../../Components/createPost";
+import CreatePostModal from "../../Components/CreatePostModal";
 import CommentModal from "../../Components/CommentModal";
 import { IoAddCircleOutline } from "react-icons/io5";
 
@@ -355,7 +355,14 @@ const DashboardPage = () => {
         )}
 
         {/* Create Post Modal */}
-        <CreatePost isOpen={postModal.isOpen} onClose={postModal.onClose} uid={uid} buyer={buyer} />
+        <CreatePostModal
+          isOpen={postModal.isOpen}
+          onClose={postModal.onClose}
+          uid={uid}
+          userName={buyer?.fullName}
+          userPhoto={buyer?.profilePhotoUrl}
+          fetchPosts={() => console.log("Posts fetched (real-time listener handles updates)")}
+        />
 
         {/* Comment Modal */}
         <CommentModal

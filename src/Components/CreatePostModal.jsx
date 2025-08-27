@@ -21,8 +21,9 @@ import {
   import { db } from "../firebaseConfig"; // Adjust the import path as necessary
   import axios from "axios";
   import { AiOutlineCloudUpload } from "react-icons/ai";
+  import CreatePost from "./createPost";
   
-  const CreatePostModal = ({ isOpen, onClose, uid, fetchPosts }) => {
+  const CreatePostModal = ({ isOpen, onClose, uid, userName, userPhoto, fetchPosts }) => {
     const [content, setContent] = useState("");
     const [imageFile, setImageFile] = useState(null);
     const [preview, setPreview] = useState("");
@@ -48,8 +49,8 @@ import {
       }
     };
   
-    const handleSubmit = async () => {
-      if (!content && !imageFile) {
+    const handleCreatePost = async ({ postContent, imageFile }) => {
+      if (!postContent && !imageFile) {
         toast({ title: "Post cannot be empty", status: "warning", duration: 3000 });
         return;
       }
@@ -70,7 +71,9 @@ import {
         try {
           await addDoc(collection(db, "posts"), {
             uid,
-            content,
+            userName,
+            userPhoto,
+            content: postContent,
             imageUrl,
             createdAt: serverTimestamp()
           });
@@ -94,49 +97,12 @@ import {
     };
   
     return (
-      <Modal isOpen={isOpen} onClose={onClose} isCentered>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Create Post</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <VStack spacing={4}>
-              <Textarea
-                placeholder="What's happening?"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-              />
-              <Flex
-                border="2px dashed"
-                borderColor="gray.300"
-                p={3}
-                borderRadius="md"
-                align="center"
-                justify="center"
-                direction="column"
-                cursor="pointer"
-                onClick={() => document.getElementById("postImageInput").click()}
-              >
-                <Icon as={AiOutlineCloudUpload} fontSize="20px" color="gray.500" />
-                <Text fontSize="sm" color="gray.500">Click to upload an image</Text>
-              </Flex>
-              <Input
-                id="postImageInput"
-                type="file"
-                accept="image/*"
-                hidden
-                onChange={handleImageChange}
-              />
-              {preview && <Image src={preview} borderRadius="md" />}
-            </VStack>
-          </ModalBody>
-          <ModalFooter>
-            <Button colorScheme="twitter" onClick={handleSubmit} isLoading={loading}>
-              Post
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+      <CreatePost
+        isOpen={isOpen}
+        onClose={onClose}
+        handleCreatePost={handleCreatePost}
+        submitting={loading}
+      />
     );
   };
   

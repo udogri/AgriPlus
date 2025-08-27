@@ -6,20 +6,28 @@ import { useAuth } from "../AuthContext";
 import { Box, VStack, Text, Input, Button } from "@chakra-ui/react";
 
 export default function ChatWindow() {
-const { id } = useParams();
-const { currentUser } = useAuth();
-const [messages, setMessages] = useState([]);
-const [newMsg, setNewMsg] = useState("");
+  const { id } = useParams();
+  const { currentUser } = useAuth();
+  const [messages, setMessages] = useState([]);
+  const [newMsg, setNewMsg] = useState("");
 
+  useEffect(() => {
+    if (!id || !currentUser) return; // Ensure currentUser is available before fetching messages
+    const q = query(collection(db, `connections/${id}/messages`), orderBy("createdAt"));
+    const unsub = onSnapshot(q, (snapshot) => {
+      setMessages(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+    });
+    return unsub;
+  }, [id, currentUser]); // Add currentUser to dependency array
 
-useEffect(() => {
-if (!id) return;
-const q = query(collection(db, `connections/${id}/messages`), orderBy("createdAt"));
-const unsub = onSnapshot(q, (snapshot) => {
-setMessages(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
-});
-return unsub;
-}, [id]);
+  // If currentUser is not available, render a loading state or redirect
+  if (!currentUser) {
+    return (
+      <Box p={4} h="100vh" display="flex" alignItems="center" justifyContent="center">
+        <Text>Please log in to view chats.</Text>
+      </Box>
+    );
+  }
 
 
 const sendMessage = async () => {
