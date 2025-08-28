@@ -2,24 +2,32 @@ import React, { useEffect, useState } from 'react';
 import {
   Box, Text, Image, VStack, HStack, SimpleGrid, Spinner, Button,
   useToast, Avatar, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton,
-  ModalBody, ModalFooter, Input, FormControl, FormLabel, Flex, Icon
+  ModalBody, ModalFooter, Input, FormControl, FormLabel, Flex, Icon,
+  Divider, IconButton, useDisclosure
 } from '@chakra-ui/react';
-import { doc, getDoc, addDoc, collection, query, where, getDocs, orderBy, serverTimestamp, deleteDoc } from 'firebase/firestore';
+import { FaHeart, FaRegComment, FaRetweet, FaShareAlt } from "react-icons/fa";
+import { doc, getDoc, addDoc, collection, query, where, getDocs, orderBy, serverTimestamp, deleteDoc, updateDoc } from 'firebase/firestore';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db, auth } from '../firebaseConfig';
 import { AiOutlineCloudUpload } from 'react-icons/ai';
 import axios from 'axios';
 import { onAuthStateChanged } from 'firebase/auth';
+import DashBoardLayout from '../DashboardLayout';
+import CommentModal from './CommentModal';
 
 const UserProfile = () => {
   const [buyer, setBuyer] = useState(null);
   const [loading, setLoading] = useState(true);
   const [posts, setPosts] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newPost, setNewPost] = useState({ caption: '', imageFile: null });
+  const [newPost, setNewPost] = useState({ content: '', imageFile: null });
   const [submitting, setSubmitting] = useState(false);
   const [currentUserUid, setCurrentUserUid] = useState(null);
   const [followStatus, setFollowStatus] = useState('none'); // 'none', 'following'
+  const [selectedImage, setSelectedImage] = useState(null);
+  const { isOpen: isImageModalOpen, onOpen: onImageModalOpen, onClose: onImageModalClose } = useDisclosure();
+  const [selectedPost, setSelectedPost] = useState(null); // State to hold the post selected for commenting
+  const { isOpen: isCommentModalOpen, onOpen: onCommentModalOpen, onClose: onCommentModalClose } = useDisclosure();
 
   const toast = useToast();
   const { uid } = useParams();
@@ -35,13 +43,17 @@ const UserProfile = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!currentUserUid || !uid) return;
+      if (!currentUserUid || !uid) {
+        setLoading(false); // Ensure loading is false if no user/uid to fetch data for
+        return;
+      }
 
+      setLoading(true); // Set loading to true when starting data fetch
       try {
-const docRef = doc(db, 'users', uid);
+        const docRef = doc(db, 'buyers', uid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-setBuyer({ id: docSnap.id, ...docSnap.data() });
+          setBuyer({ id: docSnap.id, ...docSnap.data() });
           console.log("URL UID:", uid, "Auth UID:", currentUserUid);
 
           // Check follow status
@@ -68,7 +80,7 @@ setBuyer({ id: docSnap.id, ...docSnap.data() });
           });
         }
 
-const q = query(collection(db, 'posts'), where('uid', '==', uid), orderBy('createdAt', 'desc'));
+        const q = query(collection(db, 'posts'), where('uid', '==', uid), orderBy('createdAt', 'desc'));
         const snap = await getDocs(q);
         setPosts(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       } catch (err) {
@@ -80,6 +92,38 @@ const q = query(collection(db, 'posts'), where('uid', '==', uid), orderBy('creat
 
     fetchData();
   }, [uid, currentUserUid, toast]);
+
+  // Like post
+  const handleLike = async (post) => {
+    const alreadyLiked = post.likes?.includes(currentUserUid);
+    const updatedLikes = alreadyLiked
+      ? post.likes.filter((id) => id !== currentUserUid)
+      : [...(post.likes || []), currentUserUid];
+    await updateDoc(doc(db, "posts", post.id), { likes: updatedLikes });
+  };
+
+  // Retweet post
+  const handleRetweet = async (post) => {
+    await addDoc(collection(db, "posts"), {
+      content: `RT @${post.userName}: ${post.content}`,
+      imageUrl: post.imageUrl || "",
+      uid: currentUserUid,
+      userName: buyer.fullName,
+      userPhoto: buyer.profilePhotoUrl,
+      createdAt: serverTimestamp(),
+      likes: [],
+      comments: [],
+      retweetOf: post.id
+    });
+    toast({ title: "Post retweeted", status: "success" });
+  };
+
+  // Share post
+  const handleShare = (postId) => {
+    const shareUrl = `${window.location.origin}/post/${postId}`;
+    navigator.clipboard.writeText(shareUrl);
+    toast({ title: "Post link copied", status: "info" });
+  };
 
   const toggleFollow = async () => {
     if (!currentUserUid || !buyer) return;
@@ -159,7 +203,7 @@ const q = query(collection(db, 'posts'), where('uid', '==', uid), orderBy('creat
   };
 
   const handleSubmitPost = async () => {
-    if (!newPost.caption.trim() || !newPost.imageFile) {
+    if (!newPost.content.trim() || !newPost.imageFile) {
       toast({ title: 'All fields are required', status: 'warning', duration: 3000, isClosable: true });
       return;
     }
@@ -168,13 +212,13 @@ const q = query(collection(db, 'posts'), where('uid', '==', uid), orderBy('creat
       const imageUrl = await handleImageUpload(newPost.imageFile);
 await addDoc(collection(db, 'posts'), {
         uid,
-        caption: newPost.caption,
+        content: newPost.content,
         imageUrl,
         createdAt: new Date().toISOString()
       });
       toast({ title: 'Post created successfully', status: 'success', duration: 3000, isClosable: true });
       setIsModalOpen(false);
-      setNewPost({ caption: '', imageFile: null });
+      setNewPost({ content: '', imageFile: null });
 
 const q = query(collection(db, 'posts'), where('uid', '==', uid), orderBy('createdAt', 'desc'));
       const snap = await getDocs(q);
@@ -199,6 +243,7 @@ const q = query(collection(db, 'posts'), where('uid', '==', uid), orderBy('creat
   if (!buyer) return null;
 
   return (
+    <DashBoardLayout active="buyer" role="buyer" showNav>
     <Box maxW="900px" mx="auto" px={4} py={8}>
       <HStack spacing={[4, 10]} mb={8} align="flex-start">
         <Avatar size="2xl" name={buyer.fullName} src={buyer.profilePhotoUrl} border="2px solid" borderColor="teal.500" />
@@ -218,25 +263,94 @@ const q = query(collection(db, 'posts'), where('uid', '==', uid), orderBy('creat
               </HStack>
             )}
           </HStack>
-          <Text color="gray.600">{buyer.email}</Text>
+          <Text color="gray.600">{buyer.bio || ""}</Text>
+          <Text fontSize="md" color="gray.700">{posts.length} Posts</Text>
         </VStack>
       </HStack>
 
-      <Text fontWeight="bold" mb={4} fontSize="lg">Posts</Text>
+      <Divider mb={6}  />
+
+      <Text fontWeight="bold" align="center" mb={4} fontSize="lg">Posts</Text>
       {posts.length > 0 ? (
-        <SimpleGrid columns={[1, 2, 3]} spacing={4}>
+        <VStack spacing={4} align="stretch">
           {posts.map(post => (
-            <Box key={post.id} borderWidth="1px" borderRadius="lg" overflow="hidden" p={3}>
-              <Image src={post.imageUrl} alt={post.caption} borderRadius="md" objectFit="cover" w="100%" h="200px" />
-              <Text mt={2} fontSize="sm">{post.caption}</Text>
+            <Box key={post.id} bg="white" p={4} borderRadius="lg" shadow="sm">
+              <HStack align="start" spacing={4} mb={2}>
+                <Avatar size="md" name={post.userName} src={post.userPhoto} />
+                <VStack align="start" spacing={0}>
+                  <Text fontWeight="bold">{post.userName}</Text>
+                  <Text fontSize="xs" color="gray.500">
+                    {post.createdAt?.toDate
+                      ? new Date(post.createdAt.toDate()).toLocaleString()
+                      : "Just now"}
+                  </Text>
+                </VStack>
+              </HStack>
+              <Text mt={2}>{post.content}</Text>
+              {post.imageUrl && (
+                <Image
+                  src={post.imageUrl}
+                  alt={post.content}
+                  borderRadius="md"
+                  mt={2}
+                  cursor="pointer"
+                  onClick={() => {
+                    setSelectedImage(post.imageUrl);
+                    onImageModalOpen();
+                  }}
+                  maxH="300px"
+                  objectFit="contain"
+                  mx="auto"
+                />
+              )}
+              <HStack mt={3} spacing={8}>
+                <IconButton
+                  size="sm"
+                  icon={<FaHeart color={post.likes?.includes(currentUserUid) ? "red" : "gray"} />}
+                  onClick={() => handleLike(post)}
+                  aria-label="Like post"
+                />
+                <IconButton
+                  size="sm"
+                  icon={<FaRegComment />}
+                  onClick={() => {
+                    setSelectedPost(post);
+                    onCommentModalOpen();
+                  }}
+                  aria-label="Comment on post"
+                />
+                <IconButton
+                  size="sm"
+                  icon={<FaRetweet />}
+                  onClick={() => handleRetweet(post)}
+                  aria-label="Retweet post"
+                />
+                <IconButton
+                  size="sm"
+                  icon={<FaShareAlt />}
+                  onClick={() => handleShare(post.id)}
+                  aria-label="Share post"
+                />
+              </HStack>
             </Box>
           ))}
-        </SimpleGrid>
+        </VStack>
       ) : (
-        <Box border="2px dashed" borderColor="gray.300" borderRadius="md" p={12} textAlign="center" color="gray.500">
-          <Text fontSize="md">No posts yet</Text>
+        <Box borderColor="gray.300" borderRadius="md" p={12} textAlign="center" color="gray.500">
+          <Text color="black" fontWeight="600" fontSize="34px">No posts yet</Text>
         </Box>
       )}
+
+      {/* Image Enlargement Modal */}
+      <Modal isOpen={isImageModalOpen} onClose={onImageModalClose} isCentered size="xl">
+        <ModalOverlay />
+        <ModalContent bg="transparent" boxShadow="none">
+          <ModalCloseButton color="white" />
+          <ModalBody>
+            {selectedImage && <Image src={selectedImage} maxH="90vh" objectFit="contain" mx="auto" />}
+          </ModalBody>
+        </ModalContent>
+      </Modal>
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} isCentered>
         <ModalOverlay />
@@ -245,8 +359,8 @@ const q = query(collection(db, 'posts'), where('uid', '==', uid), orderBy('creat
           <ModalCloseButton />
           <ModalBody>
             <FormControl mb={4}>
-              <FormLabel>Caption</FormLabel>
-              <Input value={newPost.caption} onChange={(e) => setNewPost({ ...newPost, caption: e.target.value })} placeholder="Write something..." />
+              <FormLabel>Content</FormLabel>
+              <Input value={newPost.content} onChange={(e) => setNewPost({ ...newPost, content: e.target.value })} placeholder="Write something..." />
             </FormControl>
 
             <FormControl>
@@ -266,7 +380,16 @@ const q = query(collection(db, 'posts'), where('uid', '==', uid), orderBy('creat
           </ModalFooter>
         </ModalContent>
       </Modal>
+
+      {/* Comment Modal */}
+      <CommentModal
+        isOpen={isCommentModalOpen}
+        onClose={onCommentModalClose}
+        selectedPost={selectedPost}
+        currentUserId={currentUserUid}
+      />
     </Box>
+    </DashBoardLayout>
   );
 };
 

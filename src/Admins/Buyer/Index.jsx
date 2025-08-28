@@ -55,6 +55,7 @@ const DashboardPage = () => {
   const [buyer, setBuyer] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
+  const [loadingProfile, setLoadingProfile] = useState(true); // New state for profile loading
 
   const [selectedPost, setSelectedPost] = useState(null);
   const [commentText, setCommentText] = useState("");
@@ -82,6 +83,7 @@ const DashboardPage = () => {
   // Fetch buyer profile
   useEffect(() => {
     const fetchBuyer = async () => {
+      setLoadingProfile(true); // Set loading to true when starting profile fetch
       try {
         const ref = doc(db, "buyers", uid);
         const snap = await getDoc(ref);
@@ -93,6 +95,7 @@ const DashboardPage = () => {
           setPreviewPhoto(data.profilePhotoUrl || "");
         } else {
           toast({ title: "Profile not found", status: "error" });
+          setBuyer(null); // Ensure buyer is null if not found
         }
       } catch (err) {
         toast({
@@ -100,6 +103,9 @@ const DashboardPage = () => {
           description: err.message,
           status: "error"
         });
+        setBuyer(null); // Ensure buyer is null on error
+      } finally {
+        setLoadingProfile(false); // Always set loading to false when fetch is complete
       }
     };
     fetchBuyer();
@@ -107,6 +113,13 @@ const DashboardPage = () => {
 
   // Real-time fetch posts
   useEffect(() => {
+    if (!uid) {
+      setLoadingPosts(false); // If no UID, no posts to load, so set loading to false
+      return;
+    }
+
+    setLoadingPosts(true); // Set loading to true when starting post fetch
+
     const userPostsQuery = query(
       collection(db, "posts"),
       where("uid", "==", uid),
@@ -125,12 +138,19 @@ const DashboardPage = () => {
       const unsubscribeReposts = onSnapshot(repostsQuery, (repostsSnapshot) => {
         const reposts = repostsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
         
-        const allPosts = [...userPosts, ...reposts].sort((a, b) => b.createdAt - a.createdAt);
+        const allPosts = [...userPosts, ...reposts].sort((a, b) => {
+          const dateA = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
+          const dateB = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
+          return dateA - dateB;
+        });
         setPosts(allPosts);
-        setLoadingPosts(false);
+        setLoadingPosts(false); // Set loading to false after both snapshots are processed
       });
 
       return () => unsubscribeReposts();
+    }, (error) => {
+      console.error("Error fetching user posts:", error);
+      setLoadingPosts(false); // Set loading to false on error
     });
 
     return () => unsubscribeUserPosts();
@@ -227,7 +247,7 @@ const DashboardPage = () => {
     editPostModal.onClose();
   };
 
-  if (!buyer)
+  if (loadingProfile || !buyer)
     return (
       <Box textAlign="center" mt={20}>
         <Spinner size="xl" />

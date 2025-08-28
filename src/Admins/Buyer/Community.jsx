@@ -92,7 +92,7 @@ const CommunityLayout = () => {
         {/* Main Layout */}
         <Grid
           templateAreas={{
-            base: `"right" "feed"`,
+            base: `"feed"`,
             md: `"feed right"`,
           }}
           templateColumns={{
@@ -106,7 +106,7 @@ const CommunityLayout = () => {
           <GridItem area="feed" w="100%" maxW="100%" overflowX="hidden">
             <Feed />
           </GridItem>
-          <GridItem area="right">
+          <GridItem area="right" display={{ base: 'none', md: 'block' }}>
             <RightSidebar />
           </GridItem>
         </Grid>

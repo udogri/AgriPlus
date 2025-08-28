@@ -19,6 +19,9 @@ import {
   updateDoc,
   setDoc,
   serverTimestamp,
+  deleteDoc,
+  getDocs,
+  addDoc,
 } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
 import { useNavigate } from "react-router-dom";
@@ -33,8 +36,12 @@ export default function RightSidebar() {
   });
   const [loading, setLoading] = useState(true);
   const [requests, setRequests] = useState([]);
+ const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]); // New state for filtered users
+  const [currentUser, setCurrentUser] = useState(null);
+  const [searchTerm, setSearchTerm] = useState(""); // New state for search term
+  const [followStatuses, setFollowStatuses] = useState({}); // To store follow status for each user
   const navigate = useNavigate();
-
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) {
@@ -157,6 +164,88 @@ export default function RightSidebar() {
     }
   };
 
+  useEffect(() => {
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        setCurrentUser(user);
+      });
+      return () => unsubscribe();
+    }, []);
+  
+    // Fetch all users
+    useEffect(() => {
+      if (!currentUser) return;
+  
+      const fetchUsers = async () => {
+        try {
+          const snapshot = await getDocs(collection(db, "users"));
+          const allUsers = snapshot.docs
+            .map((d) => ({ id: d.id, ...d.data() }))
+            .filter((u) => u.id !== currentUser.uid); // exclude self
+          setUsers(allUsers);
+          setFilteredUsers(allUsers); // Initialize filtered users with all users
+          console.log("Fetched users:", allUsers);
+  
+          // Fetch follow statuses for all users
+          const statuses = {};
+          for (const user of allUsers) {
+            const followingQuery = await getDocs(
+              collection(db, 'followers'),
+              where('followerId', '==', currentUser.uid),
+              where('followingId', '==', user.id)
+            );
+            if (!followingQuery.empty) {
+              statuses[user.id] = 'following';
+            } else {
+              statuses[user.id] = 'none';
+            }
+          }
+          setFollowStatuses(statuses);
+        } catch (err) {
+          console.error("Error fetching users:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+      fetchUsers();
+    }, [currentUser]);
+  
+    useEffect(() => {
+      const results = users.filter(user =>
+        user.displayName && user.displayName.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredUsers(results);
+    }, [searchTerm, users]);
+  
+    const toggleFollow = async (userId) => {
+      if (!currentUser) return;
+  
+      try {
+        if (followStatuses[userId] === 'following') {
+          // Unfollow
+          const followingQuery = await getDocs(
+            collection(db, 'followers'),
+            where('followerId', '==', currentUser.uid),
+            where('followingId', '==', userId)
+          );
+          if (!followingQuery.empty) {
+            await deleteDoc(followingQuery.docs[0].ref);
+            setFollowStatuses(prev => ({ ...prev, [userId]: 'none' }));
+          }
+        } else {
+          // Follow
+          await addDoc(collection(db, 'followers'), {
+            followerId: currentUser.uid,
+            followingId: userId,
+            createdAt: new Date().toISOString(),
+          });
+          setFollowStatuses(prev => ({ ...prev, [userId]: 'following' }));
+        }
+      } catch (error) {
+        console.error('Error toggling follow status:', error);
+      }
+    };
+
   if (loading) {
     return (
       <Box
@@ -182,7 +271,7 @@ export default function RightSidebar() {
       position="sticky"
       top="80px"
     >
-      <VStack spacing={3} mb={4}>
+      <HStack spacing={3} mb={4}>
         <Avatar
           size={{ base: "md", md: "lg" }}
           name={userData.fullName}
@@ -193,60 +282,77 @@ export default function RightSidebar() {
         <Text fontWeight="bold" fontSize={{ base: "16px", md: "18px" }}>
           {userData.fullName || "Your Name"}
         </Text>
-        <Text fontSize={{ base: "12px", md: "16px" }} color="gray.500">
+        {/* <Text fontSize={{ base: "12px", md: "16px" }} color="gray.500">
           {userData.bio || ""}
-        </Text>
-      </VStack>
+        </Text> */}
+      </HStack>
 
-      <Box display="flex" alignItems="center" gap="5px" mb={3}>
+      <HStack display="flex" alignItems="center" gap="5px" mb={3}>
         <Text fontSize={{ base: "12px", md: "16px" }} fontWeight="600">
-          Requests
+          Suggested for you
         </Text>
-        <TbUserPlus fontSize="20px" />
-      </Box>
-
-      <VStack align="start" spacing={3}>
-        {requests.length === 0 && (
-          <Text fontSize="sm" color="gray.500">
-            No requests yet
-          </Text>
-        )}
-        {requests.map((req) => (
-          <Box key={req.id} w="100%">
-            <HStack spacing={2}>
-              <Avatar size="sm" name={req.fullName} src={req.profilePhotoUrl} />
-              <Text fontSize={{ base: "12px", md: "16px" }}>{req.fullName}</Text>
-            </HStack>
-            <HStack mt={1} spacing={2}>
-              <Button
-                size="xs"
-                color="white"
-                bg="green.400"
-                onClick={() => acceptRequest(req)}
-              >
-                Accept
-              </Button>
-              <Button
-                size="xs"
-                variant="outline"
-                onClick={() => declineRequest(req)}
-              >
-                Decline
-              </Button>
-            </HStack>
-          </Box>
-        ))}
-      </VStack>
-
-      <Text
+        <Text
         mt={4}
         fontSize={{ base: "12px", md: "16px" }}
         color="blue.500"
         cursor="pointer"
         onClick={() => navigate("/requests")}
       >
-        See all requests
+        See all 
       </Text>
+      </HStack>
+
+      <VStack spacing={4} align="stretch">
+              {filteredUsers.length === 0 && (
+                <Text fontSize="sm" color="gray.500">
+                  No users found
+                </Text>
+              )}
+              {filteredUsers.slice(0, 5).map((user) => (
+                <HStack
+                  key={user.id}
+                  justify="space-between"
+                  p={2}
+                  _hover={{ bg: "gray.50" }}
+                  cursor="pointer"
+                  onClick={() => navigate(`/buyer/profile/${user.id}`)}
+                >
+                  <HStack>
+                    <Avatar
+                      size="sm"
+                      name={user.displayName}
+                      src={user.profilePhotoUrl}
+                    />
+                    <Text>{user.displayName}</Text>
+                  </HStack>
+                  {followStatuses[user.id] === 'none' ? (
+                    <Button
+                      size="sm"
+                      colorScheme="green"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFollow(user.id);
+                      }}
+                    >
+                      Follow
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      colorScheme="gray"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFollow(user.id);
+                      }}
+                    >
+                      Following
+                    </Button>
+                  )}
+                </HStack>
+              ))}
+            </VStack>
+
+      
     </Box>
   );
 }

@@ -14,50 +14,85 @@ import {
   getDocs,
   addDoc, // Added addDoc
   where, // Added where
-  deleteDoc, // Added deleteDoc
+  deleteDoc,
+  doc,
+  getDoc, // Added deleteDoc
+  query, // Added query
 } from "firebase/firestore";
 import { db, auth } from "../firebaseConfig";
 import { onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
+import DashBoardLayout from "../DashboardLayout";
 
 export default function UsersList() {
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]); // New state for filtered users
   const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState(""); // New state for search term
   const [followStatuses, setFollowStatuses] = useState({}); // To store follow status for each user
   const navigate = useNavigate();
+    const [role, setRole] = useState(null);
+    const [currentUserId, setCurrentUserId] = useState(null);
 
-  // Track auth state
+  // Track auth state and fetch users
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setCurrentUserId(user.uid);
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          const userRole = userData.adminId || 'guest';
+          setRole(userRole);
+
+          // Fetch full profile based on role (not directly used in this component, but kept for consistency if needed elsewhere)
+          // const profileCollection = userRole === 'buyer' ? 'buyers' : 'farmers';
+          // const profileDoc = await getDoc(doc(db, profileCollection, user.uid));
+          // if (profileDoc.exists()) {
+          //   setCurrentUserProfile(profileDoc.data());
+          // }
+        } else {
+          setRole('guest');
+        }
+      } else {
+        setCurrentUserId(null);
+        setRole('guest');
+      }
+      setLoading(false);
     });
+
     return () => unsubscribe();
   }, []);
 
-  // Fetch all users
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUserId) return;
 
-    const fetchUsers = async () => {
+    const fetchAllUsers = async () => {
       try {
-        const snapshot = await getDocs(collection(db, "users"));
-        const allUsers = snapshot.docs
-          .map((d) => ({ id: d.id, ...d.data() }))
-          .filter((u) => u.id !== currentUser.uid); // exclude self
-        setUsers(allUsers);
-        setFilteredUsers(allUsers); // Initialize filtered users with all users
-        console.log("Fetched users:", allUsers);
+        const [buyersSnapshot, farmersSnapshot] = await Promise.all([
+          getDocs(collection(db, "buyers")),
+          getDocs(collection(db, "farmers"))
+        ]);
+
+        const allBuyers = buyersSnapshot.docs.map((d) => ({ id: d.id, ...d.data(), role: 'buyer' }));
+        const allFarmers = farmersSnapshot.docs.map((d) => ({ id: d.id, ...d.data(), role: 'farmer' }));
+
+        const combinedUsers = [...allBuyers, ...allFarmers]
+          .filter((u) => u.id !== currentUserId); // exclude self
+
+        setUsers(combinedUsers);
+        setFilteredUsers(combinedUsers);
+        console.log("Fetched users:", combinedUsers);
 
         // Fetch follow statuses for all users
         const statuses = {};
-        for (const user of allUsers) {
+        for (const user of combinedUsers) {
           const followingQuery = await getDocs(
-            collection(db, 'followers'),
-            where('followerId', '==', currentUser.uid),
-            where('followingId', '==', user.id)
+            query(
+              collection(db, 'followers'),
+              where('followerId', '==', currentUserId),
+              where('followingId', '==', user.id)
+            )
           );
           if (!followingQuery.empty) {
             statuses[user.id] = 'following';
@@ -73,26 +108,28 @@ export default function UsersList() {
       }
     };
 
-    fetchUsers();
-  }, [currentUser]);
+    fetchAllUsers();
+  }, [currentUserId]);
 
   useEffect(() => {
     const results = users.filter(user =>
-      user.displayName && user.displayName.toLowerCase().includes(searchTerm.toLowerCase())
+      user.fullName && user.fullName.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredUsers(results);
   }, [searchTerm, users]);
 
   const toggleFollow = async (userId) => {
-    if (!currentUser) return;
+    if (!currentUserId) return;
 
     try {
       if (followStatuses[userId] === 'following') {
         // Unfollow
         const followingQuery = await getDocs(
-          collection(db, 'followers'),
-          where('followerId', '==', currentUser.uid),
-          where('followingId', '==', userId)
+          query(
+            collection(db, 'followers'),
+            where('followerId', '==', currentUserId),
+            where('followingId', '==', userId)
+          )
         );
         if (!followingQuery.empty) {
           await deleteDoc(followingQuery.docs[0].ref);
@@ -101,7 +138,7 @@ export default function UsersList() {
       } else {
         // Follow
         await addDoc(collection(db, 'followers'), {
-          followerId: currentUser.uid,
+          followerId: currentUserId,
           followingId: userId,
           createdAt: new Date().toISOString(),
         });
@@ -126,6 +163,7 @@ export default function UsersList() {
   }
 
   return (
+    <DashBoardLayout role={role} active="community">
     <Box bg="white" p={4} borderRadius="lg" shadow="sm">
       <Text fontWeight="bold" fontSize="lg" mb={4}>
         Discover People
@@ -154,10 +192,10 @@ export default function UsersList() {
             <HStack>
               <Avatar
                 size="sm"
-                name={user.displayName}
+                name={user.fullName}
                 src={user.profilePhotoUrl}
               />
-              <Text>{user.displayName}</Text>
+              <Text>{user.fullName}</Text>
             </HStack>
             {followStatuses[user.id] === 'none' ? (
               <Button
@@ -186,5 +224,6 @@ export default function UsersList() {
         ))}
       </VStack>
     </Box>
+    </DashBoardLayout>
   );
 }
