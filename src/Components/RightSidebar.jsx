@@ -165,57 +165,66 @@ export default function RightSidebar() {
   };
 
   useEffect(() => {
-      const unsubscribe = onAuthStateChanged(auth, (user) => {
-        setCurrentUser(user);
-      });
-      return () => unsubscribe();
-    }, []);
-  
-    // Fetch all users
-    useEffect(() => {
-      if (!currentUser) return;
-  
-      const fetchUsers = async () => {
-        try {
-          const snapshot = await getDocs(collection(db, "users"));
-          const allUsers = snapshot.docs
-            .map((d) => ({ id: d.id, ...d.data() }))
-            .filter((u) => u.id !== currentUser.uid); // exclude self
-          setUsers(allUsers);
-          setFilteredUsers(allUsers); // Initialize filtered users with all users
-          console.log("Fetched users:", allUsers);
-  
-          // Fetch follow statuses for all users
-          const statuses = {};
-          for (const user of allUsers) {
-            const followingQuery = await getDocs(
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Fetch all users from buyers and farmers collections
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const fetchAllUsers = async () => {
+      try {
+        const [buyersSnapshot, farmersSnapshot] = await Promise.all([
+          getDocs(collection(db, "buyers")),
+          getDocs(collection(db, "farmers"))
+        ]);
+
+        const allBuyers = buyersSnapshot.docs.map((d) => ({ id: d.id, ...d.data(), role: 'buyer' }));
+        const allFarmers = farmersSnapshot.docs.map((d) => ({ id: d.id, ...d.data(), role: 'farmer' }));
+
+        const combinedUsers = [...allBuyers, ...allFarmers]
+          .filter((u) => u.id !== currentUser.uid); // exclude self
+
+        setUsers(combinedUsers);
+        setFilteredUsers(combinedUsers);
+        console.log("Fetched users:", combinedUsers);
+
+        // Fetch follow statuses for all users
+        const statuses = {};
+        for (const user of combinedUsers) {
+          const followingQuery = await getDocs(
+            query(
               collection(db, 'followers'),
               where('followerId', '==', currentUser.uid),
               where('followingId', '==', user.id)
-            );
-            if (!followingQuery.empty) {
-              statuses[user.id] = 'following';
-            } else {
-              statuses[user.id] = 'none';
-            }
+            )
+          );
+          if (!followingQuery.empty) {
+            statuses[user.id] = 'following';
+          } else {
+            statuses[user.id] = 'none';
           }
-          setFollowStatuses(statuses);
-        } catch (err) {
-          console.error("Error fetching users:", err);
-        } finally {
-          setLoading(false);
         }
-      };
-  
-      fetchUsers();
-    }, [currentUser]);
-  
-    useEffect(() => {
-      const results = users.filter(user =>
-        user.displayName && user.displayName.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredUsers(results);
-    }, [searchTerm, users]);
+        setFollowStatuses(statuses);
+      } catch (err) {
+        console.error("Error fetching users:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAllUsers();
+  }, [currentUser]);
+
+  useEffect(() => {
+    const results = users.filter(user =>
+      user.fullName && user.fullName.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredUsers(results);
+  }, [searchTerm, users]);
   
     const toggleFollow = async (userId) => {
       if (!currentUser) return;
@@ -287,16 +296,15 @@ export default function RightSidebar() {
         </Text> */}
       </HStack>
 
-      <HStack display="flex" alignItems="center" gap="5px" mb={3}>
+      <HStack display="flex" justifyContent="space-between" alignItems="center" gap="5px" mb={3}>
         <Text fontSize={{ base: "12px", md: "16px" }} fontWeight="600">
           Suggested for you
         </Text>
         <Text
-        mt={4}
         fontSize={{ base: "12px", md: "16px" }}
-        color="blue.500"
+        color="green.500"
         cursor="pointer"
-        onClick={() => navigate("/requests")}
+        onClick={() => navigate("/userslist")}
       >
         See all 
       </Text>
@@ -320,10 +328,10 @@ export default function RightSidebar() {
                   <HStack>
                     <Avatar
                       size="sm"
-                      name={user.displayName}
+                      name={user.fullName}
                       src={user.profilePhotoUrl}
                     />
-                    <Text>{user.displayName}</Text>
+                    <Text>{user.fullName}</Text>
                   </HStack>
                   {followStatuses[user.id] === 'none' ? (
                     <Button

@@ -20,6 +20,7 @@ import UserProfile from './Components/UserProfile';
 import CommunityLayout from './Admins/Farmer/community2';
 import ChatWindow from './Components/ChatWindow';
 import UsersList from './Components/UsersList';
+import ChatList from './Components/ChatList'; // Import ChatList
 import { AuthProvider } from './AuthContext'; // Import AuthProvider
 
 function App() {
@@ -50,7 +51,7 @@ function App() {
           <Route path="/buyer/market" element={<MarketplacePage />} />
           <Route path="/buyer/community" element={<CommunityPage />} />
           <Route path="/buyer/profile/:uid" element={<UserProfile />} />
-          <Route path="/buyer/users" element={<UsersList />} />
+          <Route path="/userslist" element={<UsersList />} />
           {/* <Route path="/farmer/transactions" element={<FarmerTransactions />} />
           <Route path="/farmer/settings" element={<SettingsPage />} /> */}
 
@@ -60,6 +61,7 @@ function App() {
 
           {/* Add more routes as needed */}
           <Route path="/chat/:id" element={<ChatWindow />} />
+          <Route path="/chats" element={<ChatList />} /> {/* Add route for ChatList */}
           </Routes>
         </AuthProvider> {/* Close AuthProvider */}
       </Box>

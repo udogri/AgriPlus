@@ -13,6 +13,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import CreatePostModal from '../../Components/CreatePostModal';
 import { useNavigate } from 'react-router-dom';
+import ChatBubble from '../../Components/ChatBubble'; // Import ChatBubble
 
 const CommunityLayout = () => {
   const [role, setRole] = useState(null);
@@ -111,21 +112,10 @@ const CommunityLayout = () => {
           </GridItem>
         </Grid>
 
-        {/* Floating UserList Icon Bubble */}
-        <Tooltip label="View All Users" placement="left">
-          <IconButton
-            icon={<FaUsers />}
-            colorScheme="blue"
-            borderRadius="full"
-            size="lg"
-            shadow="lg"
-            position="fixed"
-            bottom="30px"
-            right="30px"
-            onClick={() => navigate('/userlist')}
-            aria-label="View all users"
-          />
-        </Tooltip>
+        
+
+        {/* Chat Bubble */}
+        <ChatBubble />
       </Box>
     </DashBoardLayout>
   );

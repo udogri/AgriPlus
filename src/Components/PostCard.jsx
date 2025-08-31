@@ -8,6 +8,7 @@ import { BiRepost } from "react-icons/bi";
 import { db, auth } from '../firebaseConfig';
 import { doc, updateDoc, arrayUnion, arrayRemove, onSnapshot } from 'firebase/firestore';
 import CommentModal from './CommentModal';
+import { useNavigate } from 'react-router-dom';   // ✅ import navigation
 
 const PostCard = ({ post }) => {
   const [likes, setLikes] = useState(post.likes || []);
@@ -16,6 +17,7 @@ const PostCard = ({ post }) => {
   const [reposts, setReposts] = useState(post.reposts || []);
   const currentUser = auth.currentUser;
   const toast = useToast();
+  const navigate = useNavigate();   // ✅ init navigate
 
   useEffect(() => {
     const postRef = doc(db, 'posts', post.id);
@@ -81,15 +83,34 @@ const PostCard = ({ post }) => {
         currentUserId={currentUser?.uid}
       />
       {/* Post Header */}
-      <HStack align="start" spacing={4} mb={3}>
-        <Avatar name={post.userName} src={post.userPhoto} />
-        <Box>
-          <Text fontSize={{base:"12px", md: "16px"}} w="100%" maxW="100%" overflowX="hidden" fontWeight="bold">{post.userName}</Text>
-          <Text fontSize={{base:"12px", md: "16px"}}  color="gray.500">
-            {post.createdAt?.toDate ? new Date(post.createdAt.toDate()).toLocaleString() : 'Just now'}
-          </Text>
-        </Box>
-      </HStack>
+      {/* Post Header */}
+<HStack align="start" spacing={4} mb={3}>
+  <Avatar
+    name={post.userName}
+    src={post.userPhoto}
+    cursor="pointer"
+    // onClick={() => navigate(`/buyer/profile/${post.userId}`)} // 👈 navigate to profile
+  />
+  <Box>
+    <Text
+      fontSize={{ base: "12px", md: "16px" }}
+      w="100%"
+      maxW="100%"
+      overflowX="hidden"
+      fontWeight="bold"
+      cursor="pointer"
+      // onClick={() => navigate(`/buyer/profile/${post.userId}`)} // 👈 also clickable name
+    >
+      {post.userName}
+    </Text>
+    <Text fontSize={{ base: "12px", md: "16px" }} color="gray.500">
+      {post.createdAt?.toDate
+        ? new Date(post.createdAt.toDate()).toLocaleString()
+        : "Just now"}
+    </Text>
+  </Box>
+</HStack>
+
 
       {/* Post Image */}
       {post.imageUrl && (
@@ -105,20 +126,20 @@ const PostCard = ({ post }) => {
       )}
 
       {/* Post Content */}
-      <Text fontSize={{base:"12px", md: "16px"}} mb={3}>{post.content}</Text>
+      <Text fontSize={{ base: "12px", md: "16px" }} mb={3}>{post.content}</Text>
 
       {/* Likes, Comments, Reposts, Share */}
       <HStack spacing={4} mb={3}>
-        <Button fontSize={{base:"12px", md: "16px"}} size="sm" colorScheme="transparent" color="black" onClick={handleLike} leftIcon={likes.includes(currentUser?.uid) ? <FaHeart color="red" /> : <FaRegHeart />}>
+        <Button fontSize={{ base: "12px", md: "16px" }} size="sm" colorScheme="transparent" color="black" onClick={handleLike} leftIcon={likes.includes(currentUser?.uid) ? <FaHeart color="red" /> : <FaRegHeart />}>
           {likes.length}
         </Button>
-        <Button fontSize={{base:"12px", md: "16px"}} size="sm" colorScheme="transparent" color="black" onClick={openCommentModal} leftIcon={<MdOutlineModeComment />}>
+        <Button fontSize={{ base: "12px", md: "16px" }} size="sm" colorScheme="transparent" color="black" onClick={openCommentModal} leftIcon={<MdOutlineModeComment />}>
           {comments.length}
         </Button>
-        <Button fontSize={{base:"12px", md: "16px"}} size="sm" colorScheme="transparent" color="black" onClick={handleRepost} leftIcon={<BiRepost />}>
+        <Button fontSize={{ base: "12px", md: "16px" }} size="sm" colorScheme="transparent" color="black" onClick={handleRepost} leftIcon={<BiRepost />}>
           {reposts.length}
         </Button>
-        <Button fontSize={{base:"12px", md: "16px"}} size="sm" colorScheme="transparent" color="black" onClick={handleShare} leftIcon={<FaShareAlt />}>
+        <Button fontSize={{ base: "12px", md: "16px" }} size="sm" colorScheme="transparent" color="black" onClick={handleShare} leftIcon={<FaShareAlt />}>
           Share
         </Button>
       </HStack>

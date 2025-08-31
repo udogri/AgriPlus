@@ -47,10 +47,13 @@ import DashBoardLayout from "../../DashboardLayout";
 import CreatePostModal from "../../Components/CreatePostModal";
 import CommentModal from "../../Components/CommentModal";
 import { IoAddCircleOutline } from "react-icons/io5";
+import { useAuth } from "../../AuthContext"; // Import useAuth
 
 const DashboardPage = () => {
   const toast = useToast();
-  const { uid } = useParams();
+  const { uid: paramUid } = useParams(); // Rename uid from params to avoid conflict
+  const { currentUser } = useAuth(); // Get current user from AuthContext
+  const uid = currentUser?.uid || paramUid; // Use currentUser.uid if available, otherwise fallback to paramUid
 
   const [buyer, setBuyer] = useState(null);
   const [posts, setPosts] = useState([]);
@@ -114,11 +117,28 @@ const DashboardPage = () => {
   // Real-time fetch posts
   useEffect(() => {
     if (!uid) {
-      setLoadingPosts(false); // If no UID, no posts to load, so set loading to false
+      setLoadingPosts(false);
+      setPosts([]); // Ensure posts are empty if no UID
       return;
     }
 
-    setLoadingPosts(true); // Set loading to true when starting post fetch
+    setLoadingPosts(true);
+    let userPostsData = [];
+    let repostsData = [];
+    let userPostsLoaded = false;
+    let repostsLoaded = false;
+
+    const checkAndSetPosts = () => {
+      if (userPostsLoaded && repostsLoaded) {
+        const allPosts = [...userPostsData, ...repostsData].sort((a, b) => {
+          const dateA = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
+          const dateB = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
+          return dateA - dateB;
+        });
+        setPosts(allPosts);
+        setLoadingPosts(false);
+      }
+    };
 
     const userPostsQuery = query(
       collection(db, "posts"),
@@ -126,34 +146,36 @@ const DashboardPage = () => {
       orderBy("createdAt", "desc")
     );
 
+    const unsubscribeUserPosts = onSnapshot(userPostsQuery, (snapshot) => {
+      userPostsData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      userPostsLoaded = true;
+      checkAndSetPosts();
+    }, (error) => {
+      console.error("Error fetching user posts:", error);
+      userPostsLoaded = true; // Mark as loaded even on error
+      checkAndSetPosts();
+    });
+
     const repostsQuery = query(
       collection(db, "posts"),
       where("reposts", "array-contains", uid),
       orderBy("createdAt", "desc")
     );
 
-    const unsubscribeUserPosts = onSnapshot(userPostsQuery, (userPostsSnapshot) => {
-      const userPosts = userPostsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      
-      const unsubscribeReposts = onSnapshot(repostsQuery, (repostsSnapshot) => {
-        const reposts = repostsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-        
-        const allPosts = [...userPosts, ...reposts].sort((a, b) => {
-          const dateA = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
-          const dateB = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
-          return dateA - dateB;
-        });
-        setPosts(allPosts);
-        setLoadingPosts(false); // Set loading to false after both snapshots are processed
-      });
-
-      return () => unsubscribeReposts();
+    const unsubscribeReposts = onSnapshot(repostsQuery, (snapshot) => {
+      repostsData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      repostsLoaded = true;
+      checkAndSetPosts();
     }, (error) => {
-      console.error("Error fetching user posts:", error);
-      setLoadingPosts(false); // Set loading to false on error
+      console.error("Error fetching reposts:", error);
+      repostsLoaded = true; // Mark as loaded even on error
+      checkAndSetPosts();
     });
 
-    return () => unsubscribeUserPosts();
+    return () => {
+      unsubscribeUserPosts();
+      unsubscribeReposts();
+    };
   }, [uid]);
 
   // Like post

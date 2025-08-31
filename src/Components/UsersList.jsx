@@ -77,29 +77,25 @@ export default function UsersList() {
         const allBuyers = buyersSnapshot.docs.map((d) => ({ id: d.id, ...d.data(), role: 'buyer' }));
         const allFarmers = farmersSnapshot.docs.map((d) => ({ id: d.id, ...d.data(), role: 'farmer' }));
 
-        const combinedUsers = [...allBuyers, ...allFarmers]
-          .filter((u) => u.id !== currentUserId); // exclude self
+        const followingQuery = query(
+          collection(db, 'followers'),
+          where('followerId', '==', currentUserId)
+        );
+        const followingSnapshot = await getDocs(followingQuery);
+        const followingIds = followingSnapshot.docs.map(doc => doc.data().followingId);
 
-        setUsers(combinedUsers);
-        setFilteredUsers(combinedUsers);
-        console.log("Fetched users:", combinedUsers);
+        const combinedUsers = [...allBuyers, ...allFarmers];
+        const unfollowedUsers = combinedUsers.filter(user => user.id !== currentUserId && !followingIds.includes(user.id));
 
-        // Fetch follow statuses for all users
+        setUsers(unfollowedUsers);
+        setFilteredUsers(unfollowedUsers);
+        console.log("Fetched users:", unfollowedUsers);
+
+        // Initialize follow statuses for unfollowed users
         const statuses = {};
-        for (const user of combinedUsers) {
-          const followingQuery = await getDocs(
-            query(
-              collection(db, 'followers'),
-              where('followerId', '==', currentUserId),
-              where('followingId', '==', user.id)
-            )
-          );
-          if (!followingQuery.empty) {
-            statuses[user.id] = 'following';
-          } else {
-            statuses[user.id] = 'none';
-          }
-        }
+        unfollowedUsers.forEach(user => {
+          statuses[user.id] = 'none';
+        });
         setFollowStatuses(statuses);
       } catch (err) {
         console.error("Error fetching users:", err);

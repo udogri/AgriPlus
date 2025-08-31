@@ -71,7 +71,7 @@ export default function SideBar({ role = 'farmer' }) {
       { label: 'Home', path: '/buyer/community', icon: MdFavorite },
       { label: 'Dashboard', path: uid ? `/buyer/dashboard/${uid}` : '/buyer/dashboard', icon: MdDashboard },
       { label: 'Marketplace', path: '/buyer/market', icon: TfiMoney },
-      { label: 'Find Friends', path: '/buyer/users', icon: MdFavorite }, // Using MdFavorite for now, can change later
+      { label: 'Find Friends', path: '/userslist', icon: MdFavorite }, // Using MdFavorite for now, can change later
       { label: 'Settings', path: '/dashboard/buyer/settings', icon: MdSettings },
     ],
   };

@@ -20,6 +20,7 @@ export default function FarmerDashboard() {
     profilePhotoUrl: "",
     bio: "",
     role: "",
+    userName: "",
   });
   const [inventory, setInventory] = useState([]);
   const [deleteId, setDeleteId] = useState(null);

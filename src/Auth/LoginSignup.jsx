@@ -16,6 +16,8 @@ import {
   signInWithPopup,
   GoogleAuthProvider
 } from 'firebase/auth';
+import FarmingImg from "../assets/FarmingImg.avif"
+
 import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../firebaseConfig'; // Make sure db is exported from firebaseConfig
 import { FcGoogle } from 'react-icons/fc';
@@ -134,6 +136,7 @@ const LoginSignup = () => {
             status: 'error',
             duration: 4000,
             isClosable: true,
+            position: 'top',
           });
           return;
         }
@@ -152,7 +155,7 @@ const LoginSignup = () => {
       if (userData?.adminId) {
         switch (userData.adminId) {
           case 'farmer':
-            navigate('/farmer/dashboard');
+            navigate('/farmer/dashboard/${uid}');
             break;
           case 'buyer':
             navigate('/buyer/community');
@@ -178,6 +181,7 @@ const LoginSignup = () => {
         status: 'error',
         duration: 4000,
         isClosable: true,
+        position: 'top',
       });
     } finally {
       setLoading(false);
@@ -185,8 +189,9 @@ const LoginSignup = () => {
   };
 
   return (
-    <Box minH="100vh" display="flex" alignItems="center" justifyContent="center" bg="gray.50">
-      <VStack spacing={4} p={6} boxShadow="md" bg="white" borderRadius="md" width="sm">
+    <Box  minH="100vh" display="flex" alignItems="center" justifyContent="center"  bg="gray.50">
+      <VStack spacing={4} p={6} boxShadow="md"
+       borderRadius="md" width="sm">
         <Heading>{isSignup ? 'Sign Up' : 'Log In'}</Heading>
 
         {isSignup && (
@@ -220,7 +225,7 @@ const LoginSignup = () => {
           />
         </FormControl>
 
-        <Button colorScheme="blue" width="full" onClick={handleSubmit} isLoading={loading}>
+        <Button colorScheme="green" width="full" onClick={handleSubmit} isLoading={loading}>
           {isSignup ? 'Sign Up' : 'Log In'}
         </Button>
 
@@ -234,7 +239,7 @@ const LoginSignup = () => {
           Continue with Google
         </Button>
 
-        <Button variant="link" onClick={() => setIsSignup(!isSignup)}>
+        <Button variant="link" color="black" onClick={() => setIsSignup(!isSignup)}>
           {isSignup ? 'Already have an account? Log in' : 'No account? Sign up'}
         </Button>
       </VStack>
