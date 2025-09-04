@@ -22,6 +22,7 @@ import ChatWindow from './Components/ChatWindow';
 import UsersList from './Components/UsersList';
 import ChatList from './Components/ChatList'; // Import ChatList
 import { AuthProvider } from './AuthContext'; // Import AuthProvider
+import Profile from './Admins/Farmer/Profile';
 
 function App() {
   return (
@@ -42,7 +43,7 @@ function App() {
           <Route path="/farmer/transactions" element={<FarmerTransactions />} />
           <Route path="/farmer/settings" element={<SettingsPage />} />
           <Route path="/farmer/community" element={<CommunityLayout />} />
-          <Route path="/farmer/profile/:uid" element={<UserProfile />} />
+          <Route path="/farmer/profile/:uid" element={<Profile />} />
 
 
 

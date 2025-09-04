@@ -125,7 +125,7 @@ export default function RightSidebar() {
     if (role === "buyer") {
       navigate(`/buyer/dashboard/${auth.currentUser.uid}`);
     } else if (role === "farmer") {
-      navigate(`/farmer/dashboard/${auth.currentUser.uid}`);
+      navigate(`/farmer/profile/${auth.currentUser.uid}`);
     }
   };
 
